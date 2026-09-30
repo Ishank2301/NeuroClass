@@ -36,34 +36,34 @@ export const ModelEvaluation: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#111114] border border-[rgba(240,240,242,0.08)] p-6 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-mono font-semibold border border-cyan-500/30">
+            <span className="label-precision text-[10px]">
               EVALUATION BENCHMARK SUITE
             </span>
-            <span className="text-xs text-slate-400 font-mono">
-              Dataset: 5,546 Verified Multi-Class MRI Slices
+            <span className="text-[10px] text-[#f0f0f2]/40 font-mono uppercase tracking-wider">
+              5,546 VERIFIED MRI SLICES
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white mt-1">
+          <h1 className="font-syne text-xl sm:text-2xl font-bold text-[#f0f0f2] mt-1.5 uppercase tracking-tight">
             Deep Learning Performance & Comparative Analytics
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl">
+          <p className="font-sans text-xs text-[#f0f0f2]/60 mt-1 max-w-3xl">
             Evaluate models trained from scratch versus transfer learning backbones across multi-class precision, recall, confusion matrices, ROC characteristics, and epoch loss histories.
           </p>
         </div>
 
         {/* Model Selector Pills */}
-        <div className="flex items-center gap-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 overflow-x-auto">
+        <div className="flex items-center gap-1.5 bg-[#080809] p-1 border border-[rgba(240,240,242,0.08)] font-mono overflow-x-auto">
           {COMPARATIVE_MODELS.map((m) => (
             <button
               key={m.id}
               onClick={() => setSelectedModelId(m.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition whitespace-nowrap ${
+              className={`px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition whitespace-nowrap ${
                 selectedModelId === m.id
-                  ? 'bg-cyan-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  ? 'bg-[#00ffa3] text-[#080809] font-bold'
+                  : 'text-[#f0f0f2]/50 hover:text-[#f0f0f2] hover:bg-white/[0.03]'
               }`}
             >
               {m.name.split(' ')[0]}
