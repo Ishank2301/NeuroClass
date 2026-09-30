@@ -1,50 +1,229 @@
 @import "tailwindcss";
 
+:root {
+  --bg: #080809;
+  --surface: #111114;
+  --surface-hover: #17171c;
+  --ink: #f0f0f2;
+  --ink-faint: rgba(240, 240, 242, 0.08);
+  --accent: #00ffa3;
+  --accent-faint: rgba(0, 255, 163, 0.08);
+  --glioma: #ff3366;
+  --meningioma: #ffae00;
+  --pituitary: #9d00ff;
+  --normal: #00ffa3;
+  --pane-border: 1px solid var(--ink-faint);
+}
+
 @layer base {
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: 'Geist', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   
+  .font-syne {
+    font-family: 'Syne', sans-serif;
+  }
+
   code, pre, .font-mono {
     font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* Custom scrollbars for medical dashboards */
+/* Ambient Background Effect (Variation 8) */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: 
+    radial-gradient(circle at 80% 20%, rgba(0, 255, 163, 0.035) 0%, transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(157, 0, 255, 0.035) 0%, transparent 40%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Variation 8 Header & Logo */
+.logo-wrap { display: flex; align-items: center; gap: 16px; }
+.logo-mark { 
+  width: 32px; height: 32px; 
+  border: 2px solid var(--accent);
+  display: flex; align-items: center; justify-content: center; 
+  font-family: 'Syne', sans-serif; font-weight: 800; color: var(--accent);
+  position: relative;
+}
+.logo-mark::after { content: ""; position: absolute; inset: -4px; border: 1px solid var(--accent); opacity: 0.3; }
+
+.nav-links { display: flex; gap: 8px; }
+.nav-links button { 
+  background: none; border: none; 
+  color: var(--ink); opacity: 0.45; 
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; 
+  padding: 8px 16px; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-links button:hover { opacity: 1; background: var(--ink-faint); }
+.nav-links button.active { opacity: 1; color: var(--accent); background: rgba(0, 255, 163, 0.05); }
+
+/* Variation 8 App Shell */
+.app-shell {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  overflow: hidden;
+}
+@media (min-width: 1024px) {
+  .app-shell {
+    grid-template-columns: 300px 1fr 340px;
+  }
+}
+
+.sidebar-left { border-right: var(--pane-border); padding: 24px; background: rgba(17, 17, 20, 0.4); }
+.sidebar-right { border-left: var(--pane-border); padding: 24px; background: rgba(17, 17, 20, 0.4); }
+
+/* Variation 8 Precision Label */
+.label,
+.label-precision { 
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; 
+  text-transform: uppercase; letter-spacing: 0.2em; 
+  color: var(--accent); opacity: 0.85; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.label::before,
+.label-precision::before { content: ""; width: 4px; height: 4px; background: currentColor; border-radius: 50%; box-shadow: 0 0 6px currentColor; }
+
+/* Variation 8 MRI Card */
+.mri-card {
+  background: var(--surface);
+  border-left: 2px solid transparent;
+  padding: 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mri-card:hover { background: #1a1a1f; border-left-color: var(--ink-faint); transform: translateX(4px); }
+.mri-card.active { background: rgba(0, 255, 163, 0.03); border-left-color: var(--accent); }
+.mri-card h4 { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; margin-bottom: 4px; }
+.mri-card .meta { font-size: 0.65rem; opacity: 0.4; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Variation 8 Viewer Container */
+.viewer-container {
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+.viewer-meta {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: var(--pane-border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: rgba(240, 240, 242, 0.5);
+}
+.canvas-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: 
+    radial-gradient(circle at center, #111 0%, #000 100%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 40px);
+}
+.mri-image-placeholder {
+  width: 520px;
+  height: 520px;
+  max-width: 100%;
+  max-height: 100%;
+  background: #000;
+  box-shadow: 0 0 100px rgba(0,0,0,1), 0 0 40px rgba(0, 255, 163, 0.05);
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.roi-box {
+  position: absolute;
+  border: 1px solid var(--glioma);
+  background: rgba(255, 51, 102, 0.05);
+}
+.roi-box::before, .roi-box::after {
+  content: ""; position: absolute; width: 10px; height: 10px; border: 1px solid currentColor;
+}
+.roi-box::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.roi-box::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+.viewer-controls {
+  padding: 20px 24px;
+  border-top: var(--pane-border);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 30px;
+  align-items: center;
+  background: var(--bg);
+}
+
+/* Variation 8 Right Sidebar Stats */
+.diag-header { margin-bottom: 28px; }
+.diag-header h2 { 
+  font-family: 'Syne', sans-serif; 
+  font-size: 3rem; 
+  line-height: 0.9; 
+  letter-spacing: -0.05em; 
+  margin-bottom: 8px; 
+}
+.conf-pill { 
+  display: inline-block; padding: 4px 12px; background: rgba(0, 255, 163, 0.1); 
+  color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; border-radius: 2px;
+}
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+.stat-cell { background: var(--surface); padding: 16px; border: 1px solid var(--ink-faint); }
+.stat-cell span { font-size: 1.1rem; font-family: 'JetBrains Mono', monospace; display: block; margin-top: 4px; }
+
+.matrix-row { margin-bottom: 16px; }
+.matrix-info { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; margin-bottom: 6px; }
+.bar-bg { height: 4px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; }
+
+.impression-box {
+  padding: 16px; background: var(--surface); border: 1px solid var(--ink-faint); font-size: 0.8rem; line-height: 1.6;
+  color: rgba(255,255,255,0.7); margin-top: 24px;
+}
+
+/* Variation 8 Primary Action Button (Clipped Corner Polygon) */
+.btn-primary,
+.btn-cut {
+  width: 100%; margin-top: 24px; padding: 16px; 
+  background: var(--accent); color: var(--bg); border: none;
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; cursor: pointer; transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+}
+.btn-primary:hover,
+.btn-cut:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 255, 163, 0.2); }
+
+/* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
-
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(8, 8, 9, 0.8);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(51, 65, 85, 0.8);
-  border-radius: 9999px;
+  background: rgba(240, 240, 242, 0.12);
+  border-radius: 2px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 1);
+  background: var(--accent);
 }
 
-/* Print styling for clinical diagnostic report */
+/* Print styling */
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #0f172a !important;
-  }
-  .no-print {
-    display: none !important;
-  }
-  .print-only {
-    display: block !important;
-  }
-  .print-card {
-    border: 1px solid #cbd5e1 !important;
-    background: #ffffff !important;
-    color: #0f172a !important;
-    box-shadow: none !important;
-  }
+  body { background: #ffffff !important; color: #0f172a !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
 }
