@@ -172,41 +172,43 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-6 bg-[#111114] border border-[rgba(240,240,242,0.08)] shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="p-2 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-              <Film className="h-5 w-5" />
+          <div className="flex items-center gap-3 mb-1.5">
+            <span className="w-8 h-8 border border-[#00ffa3] bg-[#00ffa3]/10 text-[#00ffa3] flex items-center justify-center font-syne font-bold text-xs shrink-0">
+              V
             </span>
-            <h1 className="text-xl font-bold text-white tracking-tight">Veo 3D Cine-Loop Video Studio</h1>
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 font-semibold">
+            <h1 className="font-syne text-xl font-bold text-[#f0f0f2] tracking-tight uppercase">
+              Veo 3D Cine-Loop Studio
+            </h1>
+            <span className="font-mono text-[9px] uppercase px-2 py-0.5 bg-[#00ffa3]/10 text-[#00ffa3] border border-[#00ffa3]/30">
               veo-3.1-fast-generate-preview
             </span>
           </div>
-          <p className="text-sm text-slate-400">
-            Transform static 2D brain tumor MRI scan slices into dynamic 3D rotational cine-loop videos and neurosurgical fly-throughs.
+          <p className="font-sans text-xs text-[#f0f0f2]/60">
+            Synthesize dynamic 3D rotational cine-loop videos and 4D neurosurgical navigation pathways from 2D MRI slices.
           </p>
         </div>
 
-        {/* Aspect Ratio Selector: 16:9 or 9:16 as specified in prompt */}
-        <div className="flex items-center gap-2 bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
-          <span className="text-slate-400 px-2 font-mono">Aspect Ratio:</span>
+        {/* Aspect Ratio Selector: 16:9 or 9:16 */}
+        <div className="flex items-center gap-2 bg-[#080809] p-1 border border-[rgba(240,240,242,0.08)] font-mono text-[11px]">
+          <span className="text-[#f0f0f2]/40 px-2 uppercase text-[10px]">Ratio:</span>
           <button
             onClick={() => setAspectRatio('16:9')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+            className={`px-3 py-1 font-semibold uppercase transition-all ${
               aspectRatio === '16:9'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#00ffa3] text-[#080809] font-bold'
+                : 'text-[#f0f0f2]/50 hover:text-[#f0f0f2]'
             }`}
           >
             16:9 Landscape
           </button>
           <button
             onClick={() => setAspectRatio('9:16')}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+            className={`px-3 py-1 font-semibold uppercase transition-all ${
               aspectRatio === '9:16'
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#00ffa3] text-[#080809] font-bold'
+                : 'text-[#f0f0f2]/50 hover:text-[#f0f0f2]'
             }`}
           >
             9:16 Portrait
@@ -219,14 +221,11 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
         {/* Left Column: Image Selector & Config (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
           {/* Selected Source Image Card */}
-          <div className="p-5 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-800 shadow-lg space-y-4">
+          <div className="p-5 bg-[#111114] border border-[rgba(240,240,242,0.08)] shadow-lg space-y-4">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Upload className="h-3.5 w-3.5 text-cyan-400" />
-                Source MRI Scan Slice
-              </label>
-              <label className="cursor-pointer text-xs text-cyan-400 hover:text-cyan-300 font-medium">
-                Upload Custom Image
+              <span className="label-precision text-[10px]">Source MRI Scan Slice</span>
+              <label className="cursor-pointer font-mono text-[10px] text-[#00ffa3] hover:underline uppercase">
+                Upload Custom
                 <input
                   type="file"
                   accept="image/*"
@@ -237,7 +236,7 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
             </div>
 
             {/* Image Preview Box */}
-            <div className="relative aspect-square max-h-[260px] rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center group">
+            <div className="relative aspect-square max-h-[260px] border border-[rgba(240,240,242,0.08)] bg-black flex items-center justify-center group overflow-hidden">
               {selectedImage ? (
                 <img
                   src={selectedImage}
@@ -245,31 +244,26 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
                   className="w-full h-full object-contain"
                 />
               ) : (
-                <div className="text-center p-4 text-slate-500 text-xs">
+                <div className="text-center p-4 text-slate-500 font-mono text-xs">
                   No image selected. Please choose a preset or upload.
                 </div>
               )}
-              <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span className="text-xs bg-slate-900/90 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700">
-                  Ready for Veo Animation
-                </span>
-              </div>
             </div>
 
             {/* Preset Selector */}
             <div>
-              <span className="text-[11px] text-slate-400 block mb-2 font-mono">
-                Or select from preset clinical scans:
+              <span className="font-mono text-[10px] text-[#f0f0f2]/40 uppercase tracking-wider block mb-2">
+                Preset Clinical Scans:
               </span>
               <div className="grid grid-cols-4 gap-2">
                 {SAMPLE_SCANS.map((scan) => (
                   <button
                     key={scan.id}
                     onClick={() => setSelectedImage(scan.imageUrl)}
-                    className={`relative aspect-square rounded-lg overflow-hidden border transition-all ${
+                    className={`relative aspect-square overflow-hidden border transition-all ${
                       selectedImage === scan.imageUrl
-                        ? 'border-cyan-400 ring-2 ring-cyan-500/30'
-                        : 'border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100'
+                        ? 'border-[#00ffa3] shadow-[0_0_10px_rgba(0,255,163,0.3)]'
+                        : 'border-[rgba(240,240,242,0.08)] opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img
@@ -277,7 +271,7 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
                       alt={scan.groundTruth}
                       className="w-full h-full object-cover"
                     />
-                    <span className="absolute bottom-0 inset-x-0 bg-slate-950/80 text-[9px] text-slate-300 py-0.5 text-center capitalize truncate">
+                    <span className="absolute bottom-0 inset-x-0 bg-[#080809]/90 font-mono text-[8px] text-[#f0f0f2]/80 py-0.5 text-center uppercase truncate">
                       {scan.groundTruth}
                     </span>
                   </button>
@@ -287,27 +281,27 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
 
             {/* Prompt Input Area */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                <span>Animation Prompt</span>
-                <span className="text-[10px] text-cyan-400 lowercase font-mono">veo-3.1-fast-generate-preview</span>
-              </label>
+              <div className="flex items-center justify-between">
+                <span className="label-precision text-[10px]">Animation Prompt</span>
+                <span className="font-mono text-[9px] text-[#00ffa3]/80 lowercase">veo-3.1-fast-generate-preview</span>
+              </div>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={3}
-                className="w-full rounded-xl bg-slate-950/90 border border-slate-800 focus:border-cyan-500 p-3 text-xs text-slate-200 focus:outline-none resize-none"
-                placeholder="Describe how the MRI slice should be animated..."
+                className="w-full bg-[#080809] border border-[rgba(240,240,242,0.12)] focus:border-[#00ffa3] p-3 font-mono text-xs text-[#f0f0f2] focus:outline-none resize-none"
+                placeholder="Describe how the MRI slice should be animated into a video..."
               />
 
               {/* Preset prompt pills */}
               <div className="space-y-1">
-                <span className="text-[10px] text-slate-500 font-mono">Preset Prompts:</span>
+                <span className="font-mono text-[9px] text-[#f0f0f2]/40 uppercase tracking-wider">Presets:</span>
                 <div className="space-y-1">
                   {presetPrompts.map((p, idx) => (
                     <button
                       key={idx}
                       onClick={() => setPrompt(p)}
-                      className="w-full text-left text-[11px] px-2.5 py-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800/80 text-slate-400 hover:text-slate-200 border border-slate-800/60 truncate transition-colors"
+                      className="w-full text-left font-mono text-[10px] px-2.5 py-1.5 bg-[#080809] hover:bg-white/[0.04] text-[#f0f0f2]/60 hover:text-[#00ffa3] border border-[rgba(240,240,242,0.06)] truncate transition-colors"
                     >
                       {p}
                     </button>
@@ -320,12 +314,12 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
             <button
               onClick={handleGenerateVideo}
               disabled={isGenerating || !selectedImage}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-sm shadow-lg shadow-cyan-500/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="btn-cut w-full py-4 bg-[#00ffa3] hover:bg-white text-[#080809] font-mono font-bold text-xs uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#00ffa3]/20"
             >
               {isGenerating ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin text-white" />
-                  <span>Synthesizing Veo Cine-Loop ({generationProgress}%)...</span>
+                  <RefreshCw className="h-4 w-4 animate-spin text-[#080809]" />
+                  <span>Synthesizing ({generationProgress}%)...</span>
                 </>
               ) : (
                 <>
@@ -336,7 +330,7 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
             </button>
 
             {errorMsg && (
-              <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/60 text-xs text-rose-300 flex items-center gap-2">
+              <div className="p-3 bg-rose-950/40 border border-rose-800 text-xs text-rose-300 font-mono flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
@@ -346,45 +340,44 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
 
         {/* Right Column: Video Playback & Visualization Canvas (7 cols) */}
         <div className="lg:col-span-7">
-          <div className="p-6 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-800 shadow-lg flex flex-col items-center justify-center min-h-[460px]">
+          <div className="p-6 bg-[#111114] border border-[rgba(240,240,242,0.08)] shadow-lg flex flex-col items-center justify-center min-h-[460px]">
             {isGenerating ? (
-              <div className="text-center py-16 space-y-6 max-w-md mx-auto">
-                <div className="relative w-24 h-24 mx-auto">
-                  <div className="absolute inset-0 rounded-full border-4 border-cyan-500/20 animate-ping" />
-                  <div className="w-full h-full rounded-full border-4 border-cyan-400 border-t-transparent animate-spin flex items-center justify-center">
-                    <Video className="h-8 w-8 text-cyan-400" />
+              <div className="text-center py-16 space-y-6 max-w-md mx-auto font-mono">
+                <div className="relative w-20 h-20 mx-auto">
+                  <div className="w-full h-full border-2 border-[#00ffa3] border-t-transparent animate-spin flex items-center justify-center">
+                    <Video className="h-7 w-7 text-[#00ffa3]" />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <h3 className="text-base font-bold text-white">Veo Video Generation In Progress</h3>
-                  <p className="text-xs text-slate-400">{statusMessage}</p>
+                <div className="space-y-1">
+                  <h3 className="font-syne text-sm font-bold text-white uppercase tracking-wider">Veo Synthesis In Progress</h3>
+                  <p className="text-[11px] text-[#f0f0f2]/60">{statusMessage}</p>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                <div className="w-full bg-[#080809] h-1.5 overflow-hidden border border-[rgba(240,240,242,0.08)]">
                   <div
-                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300"
+                    className="h-full bg-[#00ffa3] transition-all duration-300"
                     style={{ width: `${generationProgress}%` }}
                   />
                 </div>
-                <span className="text-xs font-mono text-cyan-400">{generationProgress}% Completed</span>
+                <span className="text-xs text-[#00ffa3]">{generationProgress}% Completed</span>
               </div>
             ) : generatedVideoUrl ? (
-              <div className="w-full space-y-4">
+              <div className="w-full space-y-4 font-mono">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                    <span className="text-xs font-bold text-slate-200">Veo Generated Cine-Loop</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-cyan-400">
-                      {aspectRatio} • 720p H.264
+                    <CheckCircle2 className="h-4 w-4 text-[#00ffa3]" />
+                    <span className="text-xs font-bold text-[#f0f0f2] uppercase">Veo Cine-Loop Output</span>
+                    <span className="text-[10px] px-2 py-0.5 bg-[#080809] text-[#00ffa3] border border-[#00ffa3]/30">
+                      {aspectRatio} • 720P
                     </span>
                   </div>
 
                   <a
                     href={generatedVideoUrl}
                     download="neuroclass-veo-cineloop.mp4"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-medium border border-cyan-500/30 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00ffa3]/10 hover:bg-[#00ffa3]/20 text-[#00ffa3] text-xs font-semibold border border-[#00ffa3]/40 transition-colors uppercase"
                   >
                     <Download className="h-3.5 w-3.5" />
                     <span>Download MP4</span>
@@ -393,7 +386,7 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
 
                 {/* Video Player Display */}
                 <div
-                  className={`relative mx-auto rounded-xl overflow-hidden border border-slate-700 bg-slate-950 shadow-2xl flex items-center justify-center ${
+                  className={`relative mx-auto overflow-hidden border border-[rgba(240,240,242,0.12)] bg-black shadow-2xl flex items-center justify-center ${
                     aspectRatio === '9:16' ? 'max-w-[280px] aspect-[9/16]' : 'w-full aspect-video'
                   }`}
                 >
@@ -408,17 +401,19 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
                   />
 
                   {/* Play/Pause overlay control */}
-                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between bg-slate-950/70 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-800 text-xs">
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between bg-[#080809]/90 px-3 py-2 border border-[rgba(240,240,242,0.08)] text-xs">
                     <button
                       onClick={togglePlayPause}
-                      className="p-1 rounded text-cyan-400 hover:text-cyan-300 transition-colors"
+                      className="p-1 text-[#00ffa3] hover:text-white transition-colors"
                     >
                       {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                     </button>
-                    <span className="font-mono text-[11px] text-slate-400">Veo 3D Neuro-Reconstruction</span>
+                    <span className="text-[10px] text-[#f0f0f2]/60 uppercase tracking-widest">
+                      Veo 3D Neuro-Reconstruction
+                    </span>
                     <button
                       onClick={() => videoRef.current?.requestFullscreen()}
-                      className="p-1 rounded text-slate-400 hover:text-slate-200"
+                      className="p-1 text-[#f0f0f2]/60 hover:text-white"
                       title="Fullscreen"
                     >
                       <Maximize2 className="h-3.5 w-3.5" />
@@ -427,14 +422,14 @@ export const VeoCineLoopStudio: React.FC<VeoCineLoopStudioProps> = ({ initialSca
                 </div>
               </div>
             ) : (
-              <div className="text-center py-20 space-y-4 max-w-sm mx-auto text-slate-500">
-                <div className="h-16 w-16 mx-auto rounded-2xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-center text-slate-400">
-                  <Film className="h-8 w-8" />
+              <div className="text-center py-20 space-y-4 max-w-sm mx-auto text-[#f0f0f2]/40 font-mono">
+                <div className="h-14 w-14 mx-auto border border-[rgba(240,240,242,0.1)] bg-[#080809] flex items-center justify-center text-[#00ffa3]">
+                  <Film className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-300">No Cine-Loop Rendered Yet</h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Select an MRI scan slice on the left, choose your aspect ratio (`16:9` or `9:16`), and click "Generate Veo 3D Cine-Loop".
+                  <h3 className="font-syne text-sm font-semibold text-[#f0f0f2] uppercase tracking-wide">No Cine-Loop Rendered Yet</h3>
+                  <p className="text-[11px] mt-1 text-[#f0f0f2]/40">
+                    Select an MRI scan slice on the left, choose your aspect ratio, and click "Generate Veo 3D Cine-Loop".
                   </p>
                 </div>
               </div>
