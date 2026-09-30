@@ -20,13 +20,20 @@ import { SAMPLE_SCANS } from '../data/sampleScans';
 import { predictMriScan, TUMOR_CLASSES_METADATA } from '../utils/mriEngine';
 import { MriViewer } from './MriViewer';
 import { ClinicalReportModal } from './ClinicalReportModal';
+import { NavTabType } from './Navbar';
+import { MessageSquare, Film, Palette } from 'lucide-react';
 
 interface ScanClassifierProps {
   selectedModel: string;
   selectedScanId?: string | null;
+  onNavigateToTab?: (tab: NavTabType, scanImageUrl?: string, contextData?: any) => void;
 }
 
-export const ScanClassifier: React.FC<ScanClassifierProps> = ({ selectedModel, selectedScanId }) => {
+export const ScanClassifier: React.FC<ScanClassifierProps> = ({
+  selectedModel,
+  selectedScanId,
+  onNavigateToTab
+}) => {
   // Current Active Scan
   const [currentScan, setCurrentScan] = useState<SampleMri>(SAMPLE_SCANS[0]);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
@@ -315,6 +322,49 @@ export const ScanClassifier: React.FC<ScanClassifierProps> = ({ selectedModel, s
                   <p className="leading-relaxed">
                     {TUMOR_CLASSES_METADATA[prediction.predictedClass].description}
                   </p>
+                </div>
+
+                {/* GenAI Workflow Quick Navigation */}
+                <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
+                  <span className="text-[10px] uppercase font-mono text-slate-500 block">
+                    AI Clinical Extension Modules:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <button
+                      onClick={() =>
+                        onNavigateToTab?.('chat', activeImageUrl, {
+                          id: currentScan.id,
+                          prediction: TUMOR_CLASSES_METADATA[prediction.predictedClass].label,
+                          confidence: prediction.confidence,
+                          sequence,
+                          description: TUMOR_CLASSES_METADATA[prediction.predictedClass].description,
+                        })
+                      }
+                      className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 text-[11px] font-semibold transition"
+                      title="Open multi-turn Gemini consultation for this case"
+                    >
+                      <MessageSquare className="h-3 w-3" />
+                      <span>Consult Gemini</span>
+                    </button>
+
+                    <button
+                      onClick={() => onNavigateToTab?.('video', activeImageUrl)}
+                      className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold transition"
+                      title="Generate 3D volumetric cine-loop using Veo"
+                    >
+                      <Film className="h-3 w-3" />
+                      <span>Veo 3D Cine</span>
+                    </button>
+
+                    <button
+                      onClick={() => onNavigateToTab?.('image-studio', activeImageUrl)}
+                      className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-[11px] font-semibold transition"
+                      title="Edit or enhance scan with Gemini Image Studio"
+                    >
+                      <Palette className="h-3 w-3" />
+                      <span>Enhance Scan</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : null}
