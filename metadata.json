@@ -2,5 +2,6 @@
   "name": "NeuroClass - Brain Tumor MRI Classification",
   "description": "AI-assisted deep learning platform for multi-class brain tumor MRI classification (Glioma, Meningioma, Pituitary, No Tumor), Grad-CAM visual explanation, and clinical triage.",
   "permissions": [],
-  "capabilities": []
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
