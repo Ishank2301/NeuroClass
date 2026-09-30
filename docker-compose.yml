@@ -1,0 +1,17 @@
+services:
+  neuroclass:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: neuroclass:latest
+    container_name: neuroclass-pacs-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
