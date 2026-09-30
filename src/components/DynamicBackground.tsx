@@ -43,28 +43,40 @@ export const DynamicBackground: React.FC<DynamicBackgroundProps> = ({ showScanli
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Subtle radial gradient background illumination
-      const grad = ctx.createRadialGradient(
-        width * 0.5,
-        height * 0.25,
-        50,
-        width * 0.5,
-        height * 0.25,
-        Math.max(width, height) * 0.7
+      // 1. Subtle radial gradient background illumination matching Variation 8
+      const grad1 = ctx.createRadialGradient(
+        width * 0.8,
+        height * 0.2,
+        20,
+        width * 0.8,
+        height * 0.2,
+        Math.max(width, height) * 0.45
       );
-      grad.addColorStop(0, 'rgba(6, 182, 212, 0.04)');
-      grad.addColorStop(0.5, 'rgba(15, 23, 42, 0)');
-      grad.addColorStop(1, 'rgba(2, 6, 23, 0)');
-      ctx.fillStyle = grad;
+      grad1.addColorStop(0, 'rgba(0, 255, 163, 0.035)');
+      grad1.addColorStop(1, 'rgba(8, 8, 9, 0)');
+      ctx.fillStyle = grad1;
+      ctx.fillRect(0, 0, width, height);
+
+      const grad2 = ctx.createRadialGradient(
+        width * 0.2,
+        height * 0.8,
+        20,
+        width * 0.2,
+        height * 0.8,
+        Math.max(width, height) * 0.45
+      );
+      grad2.addColorStop(0, 'rgba(157, 0, 255, 0.035)');
+      grad2.addColorStop(1, 'rgba(8, 8, 9, 0)');
+      ctx.fillStyle = grad2;
       ctx.fillRect(0, 0, width, height);
 
       // 2. Medical scanner laser sweep line
       laserY += laserSpeed;
       if (laserY > height) laserY = -20;
       const laserGrad = ctx.createLinearGradient(0, laserY - 15, 0, laserY + 15);
-      laserGrad.addColorStop(0, 'rgba(6, 182, 212, 0)');
-      laserGrad.addColorStop(0.5, 'rgba(6, 182, 212, 0.07)');
-      laserGrad.addColorStop(1, 'rgba(6, 182, 212, 0)');
+      laserGrad.addColorStop(0, 'rgba(0, 255, 163, 0)');
+      laserGrad.addColorStop(0.5, 'rgba(0, 255, 163, 0.06)');
+      laserGrad.addColorStop(1, 'rgba(0, 255, 163, 0)');
       ctx.fillStyle = laserGrad;
       ctx.fillRect(0, laserY - 15, width, 30);
 
@@ -75,11 +87,11 @@ export const DynamicBackground: React.FC<DynamicBackgroundProps> = ({ showScanli
           const dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 130) {
-            const lineAlpha = (1 - dist / 130) * 0.14;
+            const lineAlpha = (1 - dist / 130) * 0.12;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(6, 182, 212, ${lineAlpha})`;
+            ctx.strokeStyle = `rgba(0, 255, 163, ${lineAlpha})`;
             ctx.lineWidth = 0.75;
             ctx.stroke();
           }
@@ -100,8 +112,8 @@ export const DynamicBackground: React.FC<DynamicBackgroundProps> = ({ showScanli
         const currentAlpha = p.alpha + Math.sin(p.pulse) * 0.1;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(34, 211, 238, ${Math.max(0.05, currentAlpha)})`;
-        ctx.shadowColor = 'rgba(6, 182, 212, 0.4)';
+        ctx.fillStyle = `rgba(0, 255, 163, ${Math.max(0.05, currentAlpha)})`;
+        ctx.shadowColor = 'rgba(0, 255, 163, 0.4)';
         ctx.shadowBlur = 6;
         ctx.fill();
         ctx.shadowBlur = 0;
