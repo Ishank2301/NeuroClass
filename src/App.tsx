@@ -10,6 +10,7 @@ import { Brain, Activity, ShieldCheck, HeartPulse, FileText, Database } from 'lu
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'classifier' | 'benchmarks' | 'batch' | 'augmentation'>('classifier');
   const [selectedModel, setSelectedModel] = useState<string>('ResNet-50');
+  const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
 
   const availableModels = [
     'ResNet-50',
@@ -20,6 +21,7 @@ export const App: React.FC = () => {
   ];
 
   const handleSelectScanForDiagnosis = (scanId: string) => {
+    setSelectedScanId(scanId);
     setActiveTab('classifier');
   };
 
@@ -37,7 +39,7 @@ export const App: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'classifier' && (
-          <ScanClassifier selectedModel={selectedModel} />
+          <ScanClassifier selectedModel={selectedModel} selectedScanId={selectedScanId} />
         )}
 
         {activeTab === 'benchmarks' && (
