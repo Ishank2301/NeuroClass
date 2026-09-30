@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" width="1200" height="500">
+  <defs>
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"/>
+      <stop offset="50%" stop-color="#0b1329"/>
+      <stop offset="100%" stop-color="#030712"/>
+    </linearGradient>
+    <linearGradient id="cyan-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.8"/>
+    </linearGradient>
+    <radialGradient id="gradcam-heat" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.85"/>
+      <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.65"/>
+      <stop offset="70%" stop-color="#10b981" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <pattern id="grid-pattern" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1e293b" stroke-width="0.5" stroke-opacity="0.6"/>
+    </pattern>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1200" height="500" fill="url(#bg-grad)"/>
+  <rect width="1200" height="500" fill="url(#grid-pattern)"/>
+
+  <!-- Top Status Bar -->
+  <rect x="0" y="0" width="1200" height="42" fill="#0f172a" fill-opacity="0.8"/>
+  <line x1="0" y1="42" x2="1200" y2="42" stroke="#334155" stroke-width="1"/>
+  <circle cx="25" cy="21" r="5" fill="#ef4444"/>
+  <circle cx="42" cy="21" r="5" fill="#f59e0b"/>
+  <circle cx="59" cy="21" r="5" fill="#10b981"/>
+  <text x="85" y="26" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600">NEUROCLASS PACS DIAGNOSTIC WORKSTATION v2.4 // DEEP LEARNING MRI INFERENCE</text>
+  <rect x="980" y="10" width="195" height="22" rx="4" fill="#0369a1" fill-opacity="0.3" stroke="#0ea5e9" stroke-width="1"/>
+  <text x="992" y="25" fill="#38bdf8" font-family="monospace" font-size="11" font-weight="600">● PACS ONLINE • 0.8mm</text>
+
+  <!-- Left: PACS MRI Visualizer Simulation -->
+  <g transform="translate(60, 75)">
+    <!-- Outer Viewport Box -->
+    <rect width="440" height="375" rx="8" fill="#030712" stroke="#1e293b" stroke-width="1.5"/>
+    <rect width="440" height="30" rx="8" fill="#0f172a"/>
+    <text x="15" y="20" fill="#38bdf8" font-family="monospace" font-size="11">AXIAL T1-CE [CONTRAST] • SLICE 64/128</text>
+    <text x="350" y="20" fill="#64748b" font-family="monospace" font-size="11">FOV: 220mm</text>
+
+    <!-- Brain Cranium Silhouette -->
+    <path d="M 220 70 C 130 70 90 120 90 200 C 90 280 135 340 220 340 C 305 340 350 280 350 200 C 350 120 310 70 220 70 Z" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+    <path d="M 220 95 C 150 95 120 140 120 205 C 120 265 155 315 220 315 C 285 315 320 265 320 205 C 320 140 290 95 220 95 Z" fill="#0f172a" stroke="#1e293b" stroke-width="1.5"/>
+
+    <!-- Brain Ventricles & Sulci -->
+    <path d="M 215 150 C 205 180 195 220 215 250 M 225 150 C 235 180 245 220 225 250" stroke="#475569" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M 180 160 Q 160 190 185 220 M 260 160 Q 280 190 255 220" stroke="#334155" stroke-width="1.5" fill="none"/>
+
+    <!-- Detected Lesion Area -->
+    <circle cx="265" cy="185" r="32" fill="#475569" stroke="#94a3b8" stroke-width="1"/>
+
+    <!-- Grad-CAM Heatmap Overlay -->
+    <circle cx="265" cy="185" r="50" fill="url(#gradcam-heat)" filter="url(#glow)"/>
+
+    <!-- Caliper Measurement Overlay -->
+    <rect x="225" y="145" width="80" height="80" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <line x1="225" y1="145" x2="235" y2="145" stroke="#06b6d4" stroke-width="2"/>
+    <line x1="225" y1="145" x2="225" y2="155" stroke="#06b6d4" stroke-width="2"/>
+    <line x1="305" y1="225" x2="295" y2="225" stroke="#06b6d4" stroke-width="2"/>
+    <line x1="305" y1="225" x2="305" y2="215" stroke="#06b6d4" stroke-width="2"/>
+    <text x="232" y="140" fill="#22d3ee" font-family="monospace" font-size="10" font-weight="bold">Ø 28.4 mm [LESION]</text>
+
+    <!-- Calibration / PACS Crosshairs -->
+    <line x1="20" y1="360" x2="80" y2="360" stroke="#06b6d4" stroke-width="2"/>
+    <text x="22" y="352" fill="#06b6d4" font-family="monospace" font-size="9">50 mm CAL</text>
+    <text x="320" y="360" fill="#64748b" font-family="monospace" font-size="10">W: 350 L: 140</text>
+  </g>
+
+  <!-- Right: Model Analytics & Neural Inference Panel -->
+  <g transform="translate(540, 75)">
+    <!-- Header Badge -->
+    <rect x="0" y="0" width="130" height="24" rx="4" fill="#06b6d4" fill-opacity="0.15" stroke="#0891b2" stroke-width="1"/>
+    <text x="12" y="16" fill="#22d3ee" font-family="sans-serif" font-size="11" font-weight="bold">AI CADx REPORT</text>
+
+    <text x="0" y="55" fill="#f8fafc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="bold">
+      NeuroClass AI Suite
+    </text>
+    <text x="0" y="80" fill="#94a3b8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14">
+      State-of-the-Art Deep Learning Multi-Class Brain Tumor Detection &amp; Localization
+    </text>
+
+    <!-- Diagnosis Card -->
+    <rect x="0" y="105" width="600" height="92" rx="8" fill="#0f172a" stroke="#0284c7" stroke-width="1.5"/>
+    <text x="20" y="132" fill="#64748b" font-family="sans-serif" font-size="11" font-weight="600" text-transform="uppercase">PRIMARY AI PREDICTION (CONFIDENCE: 99.4%)</text>
+    <text x="20" y="165" fill="#38bdf8" font-family="sans-serif" font-size="24" font-weight="bold">Pituitary Adenoma</text>
+    <rect x="475" y="122" width="105" height="32" rx="6" fill="#ef4444" fill-opacity="0.2" stroke="#ef4444" stroke-width="1"/>
+    <text x="495" y="143" fill="#fca5a5" font-family="sans-serif" font-size="12" font-weight="bold">URGENT</text>
+
+    <!-- Multi-Class Probability Bars -->
+    <g transform="translate(0, 218)">
+      <!-- Pituitary -->
+      <text x="0" y="12" fill="#e2e8f0" font-family="sans-serif" font-size="12" font-weight="500">Pituitary Tumor</text>
+      <text x="555" y="12" fill="#38bdf8" font-family="monospace" font-size="12" font-weight="bold">99.4%</text>
+      <rect x="0" y="20" width="600" height="8" rx="4" fill="#1e293b"/>
+      <rect x="0" y="20" width="596" height="8" rx="4" fill="url(#cyan-glow)"/>
+
+      <!-- Glioma -->
+      <text x="0" y="46" fill="#94a3b8" font-family="sans-serif" font-size="12">Glioma Tumor</text>
+      <text x="570" y="46" fill="#94a3b8" font-family="monospace" font-size="12">0.4%</text>
+      <rect x="0" y="54" width="600" height="8" rx="4" fill="#1e293b"/>
+      <rect x="0" y="54" width="24" height="8" rx="4" fill="#475569"/>
+
+      <!-- Meningioma -->
+      <text x="0" y="80" fill="#94a3b8" font-family="sans-serif" font-size="12">Meningioma Tumor</text>
+      <text x="570" y="80" fill="#94a3b8" font-family="monospace" font-size="12">0.2%</text>
+      <rect x="0" y="88" width="600" height="8" rx="4" fill="#1e293b"/>
+      <rect x="0" y="88" width="12" height="8" rx="4" fill="#475569"/>
+
+      <!-- Normal -->
+      <text x="0" y="114" fill="#94a3b8" font-family="sans-serif" font-size="12">No Tumor (Healthy)</text>
+      <text x="570" y="114" fill="#94a3b8" font-family="monospace" font-size="12">0.0%</text>
+      <rect x="0" y="122" width="600" height="8" rx="4" fill="#1e293b"/>
+      <rect x="0" y="122" width="2" height="8" rx="4" fill="#475569"/>
+    </g>
+
+    <!-- Key Metrics Strip -->
+    <g transform="translate(0, 362)">
+      <rect x="0" y="0" width="140" height="52" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="14" y="20" fill="#64748b" font-family="sans-serif" font-size="10">OVERALL ACCURACY</text>
+      <text x="14" y="42" fill="#10b981" font-family="monospace" font-size="18" font-weight="bold">99.1%</text>
+
+      <rect x="153" y="0" width="140" height="52" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="167" y="20" fill="#64748b" font-family="sans-serif" font-size="10">MEAN AUC-ROC</text>
+      <text x="167" y="42" fill="#38bdf8" font-family="monospace" font-size="18" font-weight="bold">0.996</text>
+
+      <rect x="306" y="0" width="140" height="52" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="320" y="20" fill="#64748b" font-family="sans-serif" font-size="10">INFERENCE LATENCY</text>
+      <text x="320" y="42" fill="#f59e0b" font-family="monospace" font-size="18" font-weight="bold">24 ms</text>
+
+      <rect x="460" y="0" width="140" height="52" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="474" y="20" fill="#64748b" font-family="sans-serif" font-size="10">BACKBONE CNN</text>
+      <text x="474" y="42" fill="#c084fc" font-family="monospace" font-size="16" font-weight="bold">ResNet-50</text>
+    </g>
+  </g>
+</svg>
