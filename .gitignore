@@ -25,10 +25,17 @@ ENV/
 .ipynb_checkpoints/
 
 # Heavy Machine Learning Weights & Datasets
-# (Store datasets locally or on Cloud storage, not in Git)
-dataset/*
-!dataset/README.md
-!dataset/**/.gitkeep
+# (Ignore image binaries and heavy scan formats, keep directory structure tracked)
+dataset/**/*.jpg
+dataset/**/*.jpeg
+dataset/**/*.png
+dataset/**/*.bmp
+dataset/**/*.tif
+dataset/**/*.tiff
+dataset/**/*.dcm
+dataset/**/*.nii
+dataset/**/*.nii.gz
+dataset/**/*.csv
 raw_data/
 *.pth
 *.pt
