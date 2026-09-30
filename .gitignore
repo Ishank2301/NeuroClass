@@ -1,10 +1,24 @@
-# Node.js & Web Build Artifacts
+# ==============================================================================
+# NeuroClass: Official Git Ignore Rules (Web Application + Machine Learning)
+# ==============================================================================
+
+# 🌐 Node.js, Vite & Web Frontend Artifacts
 node_modules/
 dist/
 dist-ssr/
+.vite/
+*.local
 bun.lock
 
-# Logs
+# 🔑 Environment Variables & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# 📋 Application & Package Manager Logs
 logs/
 *.log
 npm-debug.log*
@@ -12,7 +26,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Python & Deep Learning Artifacts
+# 🧠 Python Virtual Environments & Bytecode
 __pycache__/
 *.py[cod]
 *$py.class
@@ -24,30 +38,49 @@ ENV/
 .venv/
 .ipynb_checkpoints/
 
-# Heavy Machine Learning Weights & Datasets
-# (Ignore image binaries and heavy scan formats, keep directory structure tracked)
-dataset/**/*.jpg
-dataset/**/*.jpeg
-dataset/**/*.png
-dataset/**/*.bmp
-dataset/**/*.tif
-dataset/**/*.tiff
-dataset/**/*.dcm
-dataset/**/*.nii
-dataset/**/*.nii.gz
-dataset/**/*.csv
-raw_data/
+# 🧪 Testing & Code Coverage
+coverage/
+.nyc_output/
+
+# 💾 Deep Learning Model Weights & Large Checkpoints
+# (Model weights exceed GitHub 100MB limit; store on HuggingFace/Drive/S3)
 *.pth
 *.pt
 *.onnx
 *.h5
+*.hdf5
 *.pkl
+*.bin
+*.safetensors
+models/*
+!models/.gitkeep
+checkpoints/
 
-# Editor directories and OS files
+# 🏥 Medical Imaging Datasets & Raw Archive Dumps
+# (Permits manual upload of MRI scan images into dataset/train, val, test)
+raw_data/
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# 🎯 Generated Outputs (Charts, Heatmaps, Evaluation Reports)
+outputs/*
+!outputs/.gitkeep
+
+# 📌 Preserve Critical Folder Architecture & Placeholders
+!**/.gitkeep
+!dataset/README.md
+
+# 💻 IDE, Editor & Operating System Artifacts
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+.idea/
 .vscode/*
 !.vscode/extensions.json
-.idea/
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
