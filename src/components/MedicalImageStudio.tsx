@@ -108,35 +108,35 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border border-slate-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-6 bg-[#111114] border border-[rgba(240,240,242,0.08)] shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="p-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
-              <Palette className="h-5 w-5" />
+          <div className="flex items-center gap-3 mb-1.5">
+            <span className="w-8 h-8 border border-[#00ffa3] bg-[#00ffa3]/10 text-[#00ffa3] flex items-center justify-center font-syne font-bold text-xs shrink-0">
+              M
             </span>
-            <h1 className="text-xl font-bold text-white tracking-tight">
-              Medical Illustration & Image Enhancement Studio
+            <h1 className="font-syne text-xl font-bold text-[#f0f0f2] tracking-tight uppercase">
+              Medical Illustration & Scan Studio
             </h1>
-            <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-semibold">
-              gemini-3.1-flash-image-preview
+            <span className="font-mono text-[9px] uppercase px-2 py-0.5 bg-[#00ffa3]/10 text-[#00ffa3] border border-[#00ffa3]/30">
+              gemini-3.1-flash-image
             </span>
           </div>
-          <p className="text-sm text-slate-400">
+          <p className="font-sans text-xs text-[#f0f0f2]/60">
             Use natural language prompts to create high-fidelity medical illustrations or edit brain tumor MRI scans with calibrated annotations.
           </p>
         </div>
 
         {/* Mode Switcher: Create vs Edit */}
-        <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
+        <div className="flex items-center gap-2 bg-[#080809] p-1 border border-[rgba(240,240,242,0.08)] font-mono text-[11px]">
           <button
             onClick={() => {
               setMode('edit');
               setPrompt(presetEditPrompts[0]);
             }}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+            className={`px-3 py-1 font-semibold uppercase transition-all ${
               mode === 'edit'
-                ? 'bg-purple-500/25 text-purple-200 border border-purple-500/40 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#00ffa3] text-[#080809] font-bold'
+                : 'text-[#f0f0f2]/50 hover:text-[#f0f0f2]'
             }`}
           >
             Edit MRI Scan
@@ -146,10 +146,10 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
               setMode('create');
               setPrompt(presetCreatePrompts[0]);
             }}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
+            className={`px-3 py-1 font-semibold uppercase transition-all ${
               mode === 'create'
-                ? 'bg-purple-500/25 text-purple-200 border border-purple-500/40 font-semibold shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#00ffa3] text-[#080809] font-bold'
+                : 'text-[#f0f0f2]/50 hover:text-[#f0f0f2]'
             }`}
           >
             Create from Text
@@ -161,17 +161,14 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Control Panel (5 cols) */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="p-5 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-800 shadow-lg space-y-4">
+          <div className="p-5 bg-[#111114] border border-[rgba(240,240,242,0.08)] shadow-lg space-y-4 font-mono">
             {/* If Edit Mode: Source Image Upload/Picker */}
             {mode === 'edit' && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                    <Upload className="h-3.5 w-3.5 text-purple-400" />
-                    Source Scan to Edit
-                  </label>
-                  <label className="cursor-pointer text-xs text-purple-400 hover:text-purple-300 font-medium">
-                    Upload Custom Image
+                  <span className="label-precision text-[10px]">Source Scan to Edit</span>
+                  <label className="cursor-pointer text-[10px] text-[#00ffa3] hover:underline uppercase">
+                    Upload Custom
                     <input
                       type="file"
                       accept="image/*"
@@ -181,7 +178,7 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
                   </label>
                 </div>
 
-                <div className="relative aspect-square max-h-[220px] rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center">
+                <div className="relative aspect-square max-h-[220px] border border-[rgba(240,240,242,0.08)] bg-black flex items-center justify-center overflow-hidden">
                   {sourceImage ? (
                     <img
                       src={sourceImage}
@@ -189,24 +186,24 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <span className="text-xs text-slate-500">No source image selected</span>
+                    <span className="text-xs text-slate-500 font-mono">No source image selected</span>
                   )}
                 </div>
 
                 {/* Presets */}
                 <div>
-                  <span className="text-[11px] text-slate-400 block mb-1.5 font-mono">
-                    Select sample case:
+                  <span className="text-[10px] text-[#f0f0f2]/40 block mb-1.5 uppercase tracking-wider">
+                    Select Sample Case:
                   </span>
                   <div className="grid grid-cols-4 gap-2">
                     {SAMPLE_SCANS.map((s) => (
                       <button
                         key={s.id}
                         onClick={() => setSourceImage(s.imageUrl)}
-                        className={`aspect-square rounded-lg overflow-hidden border transition-all ${
+                        className={`aspect-square overflow-hidden border transition-all ${
                           sourceImage === s.imageUrl
-                            ? 'border-purple-400 ring-2 ring-purple-500/30'
-                            : 'border-slate-800 hover:border-slate-700 opacity-70 hover:opacity-100'
+                            ? 'border-[#00ffa3] shadow-[0_0_10px_rgba(0,255,163,0.3)]'
+                            : 'border-[rgba(240,240,242,0.08)] opacity-60 hover:opacity-100'
                         }`}
                       >
                         <img
@@ -223,18 +220,16 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
 
             {/* Aspect Ratio Picker */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Aspect Ratio
-              </label>
+              <span className="label-precision text-[10px]">Aspect Ratio</span>
               <div className="grid grid-cols-4 gap-2">
                 {(['1:1', '16:9', '4:3', '3:4'] as const).map((ratio) => (
                   <button
                     key={ratio}
                     onClick={() => setAspectRatio(ratio)}
-                    className={`py-1.5 text-xs font-mono rounded-lg border transition-all ${
+                    className={`py-1.5 text-xs font-mono transition-all border ${
                       aspectRatio === ratio
-                        ? 'bg-purple-500/20 text-purple-200 border-purple-500/50 font-bold'
-                        : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                        ? 'bg-[#00ffa3] text-[#080809] font-bold border-[#00ffa3]'
+                        : 'bg-[#080809] text-[#f0f0f2]/50 border-[rgba(240,240,242,0.08)] hover:text-[#f0f0f2]'
                     }`}
                   >
                     {ratio}
@@ -245,26 +240,28 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
 
             {/* Prompt Text Input */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                <span>{mode === 'edit' ? 'Edit Instructions' : 'Generation Prompt'}</span>
-                <span className="text-[10px] text-purple-400 lowercase font-mono">gemini-3.1-flash-image</span>
-              </label>
+              <div className="flex items-center justify-between">
+                <span className="label-precision text-[10px]">
+                  {mode === 'edit' ? 'Edit Instructions' : 'Generation Prompt'}
+                </span>
+                <span className="text-[9px] text-[#00ffa3]/80 lowercase">gemini-3.1-flash-image</span>
+              </div>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={3}
-                className="w-full rounded-xl bg-slate-950/90 border border-slate-800 focus:border-purple-500 p-3 text-xs text-slate-200 focus:outline-none resize-none"
+                className="w-full bg-[#080809] border border-[rgba(240,240,242,0.12)] focus:border-[#00ffa3] p-3 text-xs text-[#f0f0f2] focus:outline-none resize-none font-mono"
                 placeholder={mode === 'edit' ? 'Describe changes to make to the scan...' : 'Describe medical illustration to create...'}
               />
 
               {/* Preset Prompts */}
               <div className="space-y-1">
-                <span className="text-[10px] text-slate-500 font-mono">Preset Prompts:</span>
+                <span className="text-[9px] text-[#f0f0f2]/40 uppercase tracking-wider">Presets:</span>
                 {(mode === 'edit' ? presetEditPrompts : presetCreatePrompts).slice(0, 3).map((p, idx) => (
                   <button
                     key={idx}
                     onClick={() => setPrompt(p)}
-                    className="w-full text-left text-[11px] px-2.5 py-1.5 rounded-lg bg-slate-950/60 hover:bg-slate-800/80 text-slate-400 hover:text-slate-200 border border-slate-800/60 truncate transition-colors"
+                    className="w-full text-left text-[10px] px-2.5 py-1.5 bg-[#080809] hover:bg-white/[0.04] text-[#f0f0f2]/60 hover:text-[#00ffa3] border border-[rgba(240,240,242,0.06)] truncate transition-colors font-mono"
                   >
                     {p}
                   </button>
@@ -276,12 +273,12 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
             <button
               onClick={handleExecute}
               disabled={isGenerating || !prompt.trim()}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-500 hover:to-cyan-500 text-white font-semibold text-sm shadow-lg shadow-purple-500/25 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="btn-cut w-full py-4 bg-[#00ffa3] hover:bg-white text-[#080809] font-mono font-bold text-xs uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#00ffa3]/20"
             >
               {isGenerating ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin text-white" />
-                  <span>Generating with Gemini Image...</span>
+                  <RefreshCw className="h-4 w-4 animate-spin text-[#080809]" />
+                  <span>Synthesizing...</span>
                 </>
               ) : (
                 <>
@@ -292,7 +289,7 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
             </button>
 
             {errorMsg && (
-              <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/60 text-xs text-rose-300 flex items-center gap-2">
+              <div className="p-3 bg-rose-950/40 border border-rose-800 text-xs text-rose-300 font-mono flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
                 <span>{errorMsg}</span>
               </div>
@@ -302,15 +299,15 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
 
         {/* Right Output & Interactive Comparison View (7 cols) */}
         <div className="lg:col-span-7">
-          <div className="p-6 rounded-2xl bg-slate-900/70 backdrop-blur-xl border border-slate-800 shadow-lg min-h-[500px] flex flex-col justify-between">
+          <div className="p-6 bg-[#111114] border border-[rgba(240,240,242,0.08)] shadow-lg min-h-[500px] flex flex-col justify-between font-mono">
             {isGenerating ? (
               <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-4">
-                <div className="h-16 w-16 rounded-2xl border-4 border-purple-500/30 border-t-purple-400 animate-spin flex items-center justify-center">
-                  <Sparkles className="h-8 w-8 text-purple-400" />
+                <div className="h-16 w-16 border-2 border-[#00ffa3] border-t-transparent animate-spin flex items-center justify-center">
+                  <Sparkles className="h-7 w-7 text-[#00ffa3]" />
                 </div>
                 <div className="text-center">
-                  <h3 className="text-sm font-bold text-white">Synthesizing Clinical Image...</h3>
-                  <p className="text-xs text-slate-400 mt-1">Applying gemini-3.1-flash-image diffusion pipeline</p>
+                  <h3 className="font-syne text-sm font-bold text-white uppercase tracking-wider">Synthesizing Clinical Image...</h3>
+                  <p className="text-[11px] text-[#f0f0f2]/60 mt-1">Applying gemini-3.1-flash-image diffusion pipeline</p>
                 </div>
               </div>
             ) : generatedImageUrl ? (
@@ -318,8 +315,8 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
                 {/* Result header & download */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                    <span className="text-xs font-bold text-slate-200">
+                    <CheckCircle2 className="h-4 w-4 text-[#00ffa3]" />
+                    <span className="text-xs font-bold text-[#f0f0f2] uppercase">
                       {mode === 'edit' ? 'Enhanced Clinical MRI Output' : 'Generated Medical Illustration'}
                     </span>
                   </div>
@@ -327,7 +324,7 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
                   <a
                     href={generatedImageUrl}
                     download="neuroclass-gemini-output.png"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 text-xs font-medium border border-purple-500/30 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00ffa3]/10 hover:bg-[#00ffa3]/20 text-[#00ffa3] text-xs font-semibold border border-[#00ffa3]/40 transition-colors uppercase"
                   >
                     <Download className="h-3.5 w-3.5" />
                     <span>Download Image</span>
@@ -337,8 +334,8 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
                 {/* Display container */}
                 {mode === 'edit' && sourceImage ? (
                   /* Interactive Split Comparison View */
-                  <div className="space-y-2">
-                    <div className="relative aspect-square max-h-[380px] rounded-xl overflow-hidden border border-slate-700 bg-black select-none mx-auto">
+                  <div className="space-y-3">
+                    <div className="relative aspect-square max-h-[380px] overflow-hidden border border-[rgba(240,240,242,0.12)] bg-black select-none mx-auto">
                       {/* Under layer: Enhanced result */}
                       <img
                         src={generatedImageUrl}
@@ -360,39 +357,39 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
 
                       {/* Divider line */}
                       <div
-                        className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.8)] pointer-events-none"
+                        className="absolute top-0 bottom-0 w-0.5 bg-[#00ffa3] shadow-[0_0_12px_#00ffa3] pointer-events-none"
                         style={{ left: `${sliderPosition}%` }}
                       >
-                        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-slate-900 border-2 border-cyan-400 flex items-center justify-center text-[10px] text-cyan-300 font-bold shadow-lg">
+                        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-[#080809] border border-[#00ffa3] flex items-center justify-center text-[10px] text-[#00ffa3] font-bold shadow-lg">
                           ⇔
                         </div>
                       </div>
 
-                      <div className="absolute top-3 left-3 bg-slate-950/80 px-2 py-0.5 rounded text-[10px] font-mono text-slate-300 border border-slate-800">
+                      <div className="absolute top-3 left-3 bg-[#080809]/90 px-2 py-0.5 text-[9px] text-[#f0f0f2]/60 border border-[rgba(240,240,242,0.1)] uppercase tracking-wider">
                         Original MRI
                       </div>
-                      <div className="absolute top-3 right-3 bg-purple-950/80 px-2 py-0.5 rounded text-[10px] font-mono text-purple-300 border border-purple-800">
+                      <div className="absolute top-3 right-3 bg-[#00ffa3]/10 px-2 py-0.5 text-[9px] text-[#00ffa3] border border-[#00ffa3]/30 uppercase tracking-wider">
                         Gemini Enhanced
                       </div>
                     </div>
 
                     {/* Comparison Slider */}
                     <div className="flex items-center gap-3 px-2">
-                      <span className="text-[11px] font-mono text-slate-400">Original</span>
+                      <span className="text-[10px] text-[#f0f0f2]/40 uppercase tracking-wider">Original</span>
                       <input
                         type="range"
                         min="0"
                         max="100"
                         value={sliderPosition}
                         onChange={(e) => setSliderPosition(Number(e.target.value))}
-                        className="flex-1 accent-cyan-400 cursor-ew-resize"
+                        className="flex-1 accent-[#00ffa3] cursor-ew-resize h-1 bg-[rgba(240,240,242,0.1)] rounded"
                       />
-                      <span className="text-[11px] font-mono text-purple-300">Enhanced</span>
+                      <span className="text-[10px] text-[#00ffa3] uppercase tracking-wider">Enhanced</span>
                     </div>
                   </div>
                 ) : (
                   /* Standard Image Display */
-                  <div className="relative aspect-square max-h-[400px] rounded-xl overflow-hidden border border-slate-700 bg-black mx-auto flex items-center justify-center">
+                  <div className="relative aspect-square max-h-[400px] overflow-hidden border border-[rgba(240,240,242,0.12)] bg-black mx-auto flex items-center justify-center">
                     <img
                       src={generatedImageUrl}
                       alt="Generated"
@@ -402,20 +399,20 @@ export const MedicalImageStudio: React.FC<MedicalImageStudioProps> = ({ initialS
                 )}
 
                 {generationDesc && (
-                  <p className="text-xs text-slate-400 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                  <p className="font-sans text-xs text-[#f0f0f2]/70 bg-[#080809] p-3 border border-[rgba(240,240,242,0.08)] leading-relaxed">
                     {generationDesc}
                   </p>
                 )}
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center py-24 space-y-4 text-center text-slate-500">
-                <div className="h-16 w-16 rounded-2xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-center text-slate-400">
-                  <ImageIcon className="h-8 w-8" />
+              <div className="flex-1 flex flex-col items-center justify-center py-24 space-y-4 text-center text-[#f0f0f2]/40 font-mono">
+                <div className="h-14 w-14 border border-[rgba(240,240,242,0.1)] bg-[#080809] flex items-center justify-center text-[#00ffa3]">
+                  <ImageIcon className="h-6 w-6" />
                 </div>
                 <div className="max-w-xs">
-                  <h3 className="text-sm font-semibold text-slate-300">No Image Rendered Yet</h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Configure your prompt on the left and click "Apply Medical Edit" or "Generate Medical Illustration" to begin.
+                  <h3 className="font-syne text-sm font-semibold text-[#f0f0f2] uppercase tracking-wide">No Image Rendered Yet</h3>
+                  <p className="text-[11px] text-[#f0f0f2]/40 mt-1">
+                    Configure your prompt on the left and click "Apply Medical Edit" or "Generate Medical Illustration".
                   </p>
                 </div>
               </div>
