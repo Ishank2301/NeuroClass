@@ -37,6 +37,107 @@
 
 ---
 
+## 🏗️ Clean Project Architecture & Separation of Concerns
+
+To guarantee zero deployment errors and maximum MLOps maintainability, NeuroClass is structured into three decoupled layers:
+
+```text
+neuroclass/
+├── 🌐 Web & PACS Frontend Tier (React 18, Vite 6, Tailwind CSS v4)
+│   ├── src/                    # Reactive PACS viewer, Grad-CAM canvas & triage
+│   ├── public/                 # Static clinical icons & browser assets
+│   ├── index.html              # Shell entry point
+│   ├── vite.config.ts          # Vite 6 bundler config
+│   └── package.json            # Node.js dependencies
+│
+├── 🔌 Backend & Microservice Tier (Node.js & Container)
+│   ├── server/api.ts           # Standalone REST API (GET /api/models, POST /api/predict)
+│   ├── Dockerfile              # Multi-stage production Alpine Nginx container
+│   ├── docker-compose.yml      # Container orchestration
+│   ├── .dockerignore           # Excludes heavy ML data from web deployments
+│   ├── vercel.json             # Vercel SPA rewrites & immutable caching
+│   └── netlify.toml            # Netlify build configuration
+│
+└── 🧠 Deep Learning & Research Tier (PyTorch 2.1+, Torchvision)
+    ├── ml/
+    │   ├── split_data.py       # Automated stratified 70/15/15 dataset splitter
+    │   ├── dataset.py          # PyTorch DataLoader with val/valid auto-detection
+    │   ├── model.py            # ResNet-50, EfficientNet, MobileNet & Custom CNN
+    │   ├── train.py            # AdamW + CosineAnnealing training pipeline
+    │   ├── evaluate.py         # Test cohort evaluation (report, confusion matrix, ROC)
+    │   ├── gradcam.py          # Standalone Grad-CAM heatmap visualization
+    │   ├── export.py           # Exports to ONNX (.onnx) and TorchScript (.pt)
+    │   └── requirements.txt    # Python scientific dependencies
+    ├── notebooks/
+    │   └── Brain_Tumor_Classification_GradCAM.ipynb  # Interactive Colab pipeline
+    ├── dataset/                # Excluded from git & docker via .gitignore/.dockerignore
+    │   ├── train/              # glioma/, meningioma/, notumor/, pituitary/
+    │   ├── val/                # validation split (also supports 'valid/')
+    │   └── test/               # held-out clinical test cohort
+    └── train.py                # Convenient CLI root wrapper -> ml/train.py
+```
+
+---
+
+## 📁 Dataset Organization & Best Practices
+
+NeuroClass expects your brain tumor MRI data organized into standard PyTorch `ImageFolder` subdirectories:
+
+```text
+dataset/
+├── train/
+│   ├── glioma/
+│   ├── meningioma/
+│   ├── notumor/
+│   └── pituitary/
+├── val/          # (or 'valid/')
+│   ├── glioma/
+│   ├── meningioma/
+│   ├── notumor/
+│   └── pituitary/
+└── test/
+    ├── glioma/
+    ├── meningioma/
+    ├── notumor/
+    └── pituitary/
+```
+
+### 1. Automated Dataset Splitting (Best Practice)
+If you have raw unsplit data (or separate `Training/` and `Testing/` folders from Kaggle), use the automated stratified splitter to create `train`, `val`, and `test` subsets without class imbalance:
+
+```bash
+# Auto-split raw data into 70% train, 15% val, 15% test
+python ml/split_data.py --source /path/to/raw_data --output ./dataset --train-ratio 0.70 --val-ratio 0.15 --test-ratio 0.15
+```
+
+### 2. Training the Model
+```bash
+# Train ResNet-50 on your dataset
+python train.py --data-dir ./dataset --arch resnet50 --epochs 25 --batch-size 32 --lr 1e-4
+
+# Or train other backbones:
+python train.py --data-dir ./dataset --arch efficientnet_b0
+python train.py --data-dir ./dataset --arch mobilenet_v2
+python train.py --data-dir ./dataset --arch custom_cnn
+```
+
+### 3. Evaluating on the Held-Out Test Set
+```bash
+python ml/evaluate.py --data-dir ./dataset --weights ./models/neuroclass_resnet50_best.pth --arch resnet50
+```
+
+### 4. Generating Grad-CAM Heatmaps
+```bash
+python ml/gradcam.py --image ./dataset/test/glioma/sample1.jpg --weights ./models/neuroclass_resnet50_best.pth
+```
+
+### 5. Exporting for Web & Inference Servers
+```bash
+python ml/export.py --weights ./models/neuroclass_resnet50_best.pth --arch resnet50 --output-dir ./models
+```
+
+---
+
 ## 📓 Jupyter Notebook & PyTorch Pipeline
 
 A complete, self-contained, reproducible Jupyter Notebook is provided in [`notebooks/Brain_Tumor_Classification_GradCAM.ipynb`](notebooks/Brain_Tumor_Classification_GradCAM.ipynb).
