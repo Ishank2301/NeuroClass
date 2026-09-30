@@ -56,6 +56,8 @@ export const MriViewer: React.FC<MriViewerProps> = ({
   const [filter, setFilter] = useState<'standard' | 'contrast' | 'bone' | 'sobel' | 'invert'>('standard');
   const [showCrosshairs, setShowCrosshairs] = useState<boolean>(false);
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [showScanlines, setShowScanlines] = useState<boolean>(true);
+  const [showPulsingHalo, setShowPulsingHalo] = useState<boolean>(true);
 
   // Redraw Base Image onto Canvas
   useEffect(() => {
@@ -270,6 +272,17 @@ export const MriViewer: React.FC<MriViewerProps> = ({
             <Crosshair className="h-4 w-4" />
           </button>
           <button
+            onClick={() => setShowScanlines(!showScanlines)}
+            className={`p-1.5 rounded transition ${
+              showScanlines
+                ? 'bg-cyan-500/20 text-cyan-300'
+                : 'text-slate-500 hover:text-cyan-400 hover:bg-slate-800'
+            }`}
+            title="Toggle CRT Scanline Overlay"
+          >
+            <Layers className="h-4 w-4" />
+          </button>
+          <button
             onClick={handleExportSnapshot}
             className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded transition"
             title="Export Image Snapshot"
@@ -313,6 +326,19 @@ export const MriViewer: React.FC<MriViewerProps> = ({
             className="absolute inset-0 w-full h-full pointer-events-none mix-blend-screen"
           />
 
+          {/* Pulsing Lesion Glow Halo */}
+          {showPulsingHalo && showRoiBox && prediction && prediction.predictedClass !== 'no_tumor' && (
+            <div
+              className="absolute rounded-full pointer-events-none animate-pulse bg-red-500/20 filter blur-md"
+              style={{
+                left: `${prediction.gradCamRoi.x - 12}px`,
+                top: `${prediction.gradCamRoi.y - 12}px`,
+                width: `${prediction.gradCamRoi.width + 24}px`,
+                height: `${prediction.gradCamRoi.height + 24}px`
+              }}
+            />
+          )}
+
           {/* ROI Bounding Box & Label */}
           {showRoiBox && prediction && prediction.predictedClass !== 'no_tumor' && (
             <div
@@ -328,6 +354,11 @@ export const MriViewer: React.FC<MriViewerProps> = ({
                 ROI: {prediction.gradCamRoi.estimatedDiameterMm} mm (Area ~{prediction.gradCamRoi.estimatedAreaMm2} mm²)
               </div>
             </div>
+          )}
+
+          {/* Medical Workstation Scanline Effect */}
+          {showScanlines && (
+            <div className="absolute inset-0 pointer-events-none z-10 opacity-25 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.6)_50%)] bg-[length:100%_4px]" />
           )}
 
           {/* Crosshairs Overlay */}
