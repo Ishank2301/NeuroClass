@@ -48,13 +48,16 @@ neuroclass/
 │   ├── public/                 # Static clinical icons & browser assets
 │   ├── index.html              # Shell entry point
 │   ├── vite.config.ts          # Vite 6 bundler config
-│   └── package.json            # Node.js dependencies
+│   ├── package.json            # Node.js dependencies
+│   └── DEPLOYMENT.md           # 🚀 Complete step-by-step deployment guide
 │
 ├── 🔌 Backend & Microservice Tier (Node.js & Container)
 │   ├── server/api.ts           # Standalone REST API (GET /api/models, POST /api/predict)
 │   ├── Dockerfile              # Multi-stage production Alpine Nginx container
 │   ├── docker-compose.yml      # Container orchestration
 │   ├── .dockerignore           # Excludes heavy ML data from web deployments
+│   ├── .gitignore              # Official Git ignore rules for ML + Web
+│   ├── .env.example            # Environment variables configuration template
 │   ├── vercel.json             # Vercel SPA rewrites & immutable caching
 │   └── netlify.toml            # Netlify build configuration
 │
@@ -70,12 +73,18 @@ neuroclass/
     │   └── requirements.txt    # Python scientific dependencies
     ├── notebooks/
     │   └── Brain_Tumor_Classification_GradCAM.ipynb  # Interactive Colab pipeline
-    ├── dataset/                # Excluded from git & docker via .gitignore/.dockerignore
+    ├── dataset/                # Ready for your manual upload!
+    │   ├── README.md           # Dataset folder guide
     │   ├── train/              # glioma/, meningioma/, notumor/, pituitary/
     │   ├── val/                # validation split (also supports 'valid/')
     │   └── test/               # held-out clinical test cohort
+    ├── models/                 # Saved PyTorch (.pth) & ONNX (.onnx) weights
+    ├── outputs/                # Evaluation reports & Grad-CAM outputs
+    ├── requirements.txt        # ⭐ Root Python scientific & PyTorch dependencies
     └── train.py                # Convenient CLI root wrapper -> ml/train.py
 ```
+
+> 📖 **Looking to deploy?** Check out the full **[Step-by-Step Deployment & Setup Guide](DEPLOYMENT.md)** covering Vercel, Netlify, Docker, Google Cloud Run, and GitHub Pages!
 
 ---
 
