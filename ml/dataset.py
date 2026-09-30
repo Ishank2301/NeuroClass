@@ -46,6 +46,13 @@ def find_split_dir(base_dir: Path, possible_names: list):
             return p
     return None
 
+def count_images_in_dir(folder: Path):
+    """Counts valid medical image files in directory."""
+    if not folder or not folder.exists():
+        return 0
+    valid_exts = {'.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'}
+    return sum(1 for f in folder.glob('**/*') if f.is_file() and f.suffix.lower() in valid_exts)
+
 def build_data_loaders(data_dir: str, batch_size: int = 32, num_workers: int = 2):
     """
     Constructs PyTorch DataLoaders for train, val/valid, and test sets.
@@ -59,7 +66,19 @@ def build_data_loaders(data_dir: str, batch_size: int = 32, num_workers: int = 2
     test_path = find_split_dir(base_path, ['test', 'Testing'])
 
     if not train_path or not train_path.exists():
-        raise FileNotFoundError(f"Training directory not found inside '{data_dir}'. Expected 'train/' or 'Training/'.")
+        raise FileNotFoundError(f"Training directory not found inside '{data_dir}'. Expected 'dataset/train/' or 'dataset/Training/'.")
+
+    n_train_imgs = count_images_in_dir(train_path)
+    if n_train_imgs == 0:
+        raise FileNotFoundError(
+            f"No MRI images found inside '{train_path}'.\n"
+            "Please upload your MRI slice files (.jpg, .png) into:\n"
+            f"  - {train_path}/glioma/\n"
+            f"  - {train_path}/meningioma/\n"
+            f"  - {train_path}/notumor/\n"
+            f"  - {train_path}/pituitary/\n"
+            "Or run 'python ml/split_data.py --source /path/to/raw --output ./dataset'."
+        )
 
     # If test not found, use val; if val not found, use test
     if not val_path and test_path:
