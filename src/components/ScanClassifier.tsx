@@ -23,9 +23,10 @@ import { ClinicalReportModal } from './ClinicalReportModal';
 
 interface ScanClassifierProps {
   selectedModel: string;
+  selectedScanId?: string | null;
 }
 
-export const ScanClassifier: React.FC<ScanClassifierProps> = ({ selectedModel }) => {
+export const ScanClassifier: React.FC<ScanClassifierProps> = ({ selectedModel, selectedScanId }) => {
   // Current Active Scan
   const [currentScan, setCurrentScan] = useState<SampleMri>(SAMPLE_SCANS[0]);
   const [customImageUrl, setCustomImageUrl] = useState<string | null>(null);
@@ -34,6 +35,22 @@ export const ScanClassifier: React.FC<ScanClassifierProps> = ({ selectedModel })
   const [patientGender, setPatientGender] = useState<string>(SAMPLE_SCANS[0].gender);
   const [slicePlane, setSlicePlane] = useState<string>(SAMPLE_SCANS[0].slicePlane);
   const [sequence, setSequence] = useState<string>(SAMPLE_SCANS[0].sequence);
+
+  // Sync scan if selectedScanId is passed from external tab/triage
+  useEffect(() => {
+    if (selectedScanId) {
+      const found = SAMPLE_SCANS.find(s => s.id === selectedScanId);
+      if (found) {
+        setCurrentScan(found);
+        setCustomImageUrl(null);
+        setPatientId(found.patientId);
+        setPatientAge(found.age);
+        setPatientGender(found.gender);
+        setSlicePlane(found.slicePlane);
+        setSequence(found.sequence);
+      }
+    }
+  }, [selectedScanId]);
 
   // Inference state
   const [prediction, setPrediction] = useState<ModelPrediction | null>(null);
