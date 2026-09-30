@@ -111,33 +111,10 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Hospital PACS Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-md py-6 text-xs text-slate-500 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Brain className="h-4 w-4 text-cyan-500" />
-            <span className="font-semibold text-slate-400">
-              NeuroClass AI Diagnostic Suite
-            </span>
-            <span className="text-slate-600">•</span>
-            <span>Multi-Class Brain Tumor MRI Classification, Veo 3D Cine-Loop & Gemini GenAI Studio</span>
-          </div>
-
-          <div className="flex items-center gap-4 text-[11px] font-mono">
-            <span className="flex items-center gap-1 text-slate-400">
-              <Database className="h-3 w-3 text-cyan-500" />
-              5,546 Multi-Class MRI Slices
-            </span>
-            <span className="flex items-center gap-1 text-slate-400">
-              <HeartPulse className="h-3 w-3 text-emerald-500" />
-              DICOM Compliant (0.8mm Calibration)
-            </span>
-            <span className="flex items-center gap-1 text-slate-400">
-              <ShieldCheck className="h-3 w-3 text-cyan-400" />
-              CADx Assisted Protocol
-            </span>
-          </div>
-        </div>
+      {/* Variation 8 Monospace Precision Telemetry Footer */}
+      <footer className="h-10 px-4 sm:px-6 lg:px-8 flex flex-wrap justify-between items-center bg-[#000] font-mono text-[10px] text-[#f0f0f2]/40 tracking-wider border-t border-[rgba(240,240,242,0.08)] relative z-10 shrink-0">
+        <div>NEUROCLASS V2.4 // ENGINE_TYPE: CONVOLUTIONAL_NEURAL_NET // BACKBONE: {selectedModel.toUpperCase()}</div>
+        <div className="hidden sm:block">SESSIONS ACTIVE: 01 // GPU_TEMP: 42°C // DICOM_CALIBRATED: 0.80MM</div>
       </footer>
     </div>
   );
