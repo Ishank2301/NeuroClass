@@ -153,82 +153,79 @@ export const NeuroConsultChat: React.FC<NeuroConsultChatProps> = ({ activeScanCo
   ];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] min-h-[580px] bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-[calc(100vh-140px)] min-h-[580px] bg-[#080809] border border-[rgba(240,240,242,0.08)] shadow-2xl overflow-hidden">
       {/* Top Header Bar */}
-      <div className="px-5 py-3.5 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="px-5 py-3.5 bg-[#080809] border-b border-[rgba(240,240,242,0.08)] flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 flex items-center justify-center shadow-md shadow-cyan-500/20 ring-1 ring-cyan-400/40">
-            <Brain className="h-5 w-5 text-white animate-pulse" />
+          <div className="relative w-8 h-8 border-2 border-[#00ffa3] flex items-center justify-center font-syne font-extrabold text-[#00ffa3] text-xs shrink-0">
+            <span>AI</span>
+            <span className="absolute -inset-1 border border-[#00ffa3]/30 pointer-events-none" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-white tracking-wide">NeuroConsult AI</h2>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">
-                Multi-Turn Gemini
+              <h2 className="font-syne text-sm font-bold text-[#f0f0f2] tracking-wide uppercase">NeuroConsult AI</h2>
+              <span className="font-mono text-[9px] px-2 py-0.5 bg-[#00ffa3]/10 text-[#00ffa3] border border-[#00ffa3]/30">
+                MULTI-TURN GEMINI
               </span>
             </div>
-            <p className="text-xs text-slate-400">Neuroradiology & Neurosurgical Multi-Disciplinary Consultant</p>
+            <p className="font-mono text-[10px] text-[#f0f0f2]/40 uppercase tracking-wider">Neuroradiology & Neurosurgical Consultant</p>
           </div>
         </div>
 
         {/* Controls: Role Selector & Model Selector */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Role selector */}
-          <div className="flex items-center bg-slate-950/80 p-0.5 rounded-lg border border-slate-800 text-xs">
+          <div className="flex items-center bg-[#111114] p-0.5 border border-[rgba(240,240,242,0.08)] font-mono text-[10px] uppercase">
             <button
               onClick={() => setSelectedRole('neuroradiologist')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 transition-all ${
                 selectedRole === 'neuroradiologist'
-                  ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#00ffa3]/15 text-[#00ffa3] font-semibold border-b border-[#00ffa3]'
+                  : 'text-[#f0f0f2]/50 hover:text-[#f0f0f2]'
               }`}
-              title="Neuroradiologist: Focuses on imaging characteristics, differential diagnosis, and Grad-CAM correlation"
             >
-              <Stethoscope className="h-3.5 w-3.5" />
+              <Stethoscope className="h-3 w-3" />
               <span>Radiologist</span>
             </button>
             <button
               onClick={() => setSelectedRole('neurosurgeon')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 transition-all ${
                 selectedRole === 'neurosurgeon'
-                  ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#00ffa3]/15 text-[#00ffa3] font-semibold border-b border-[#00ffa3]'
+                  : 'text-[#f0f0f2]/50 hover:text-[#f0f0f2]'
               }`}
-              title="Neurosurgeon: Focuses on surgical feasibility, craniotomy trajectory, and eloquent cortex proximity"
             >
-              <Scissors className="h-3.5 w-3.5" />
+              <Scissors className="h-3 w-3" />
               <span>Surgeon</span>
             </button>
             <button
               onClick={() => setSelectedRole('patient_counselor')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 transition-all ${
                 selectedRole === 'patient_counselor'
-                  ? 'bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#00ffa3]/15 text-[#00ffa3] font-semibold border-b border-[#00ffa3]'
+                  : 'text-[#f0f0f2]/50 hover:text-[#f0f0f2]'
               }`}
-              title="Patient Counselor: Reassuring, clear, jargon-free medical explanation"
             >
-              <HeartHandshake className="h-3.5 w-3.5" />
+              <HeartHandshake className="h-3 w-3" />
               <span>Counselor</span>
             </button>
           </div>
 
           {/* Model selector dropdown */}
-          <div className="flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 rounded-lg px-2.5 py-1 text-xs">
-            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+          <div className="flex items-center gap-1.5 bg-[#111114] border border-[rgba(240,240,242,0.08)] px-2.5 py-1 text-xs">
+            <Sparkles className="h-3 w-3 text-[#00ffa3]" />
             <select
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value as any)}
-              className="bg-transparent text-slate-200 font-mono focus:outline-none cursor-pointer"
-              aria-label="Select Gemini Model Tier"
+              className="bg-transparent text-[#f0f0f2] font-mono text-[11px] focus:outline-none cursor-pointer"
             >
-              <option value="gemini-3.5-flash" className="bg-slate-900 text-slate-200">
+              <option value="gemini-3.5-flash" className="bg-[#111114] text-slate-200">
                 gemini-3.5-flash (General)
               </option>
-              <option value="gemini-3.1-flash-lite" className="bg-slate-900 text-slate-200">
+              <option value="gemini-3.1-flash-lite" className="bg-[#111114] text-slate-200">
                 gemini-3.1-flash-lite (Fast Triage)
               </option>
-              <option value="gemini-3.1-pro-preview" className="bg-slate-900 text-slate-200">
+              <option value="gemini-3.1-pro-preview" className="bg-[#111114] text-slate-200">
                 gemini-3.1-pro-preview (Complex Staging)
               </option>
             </select>
@@ -237,7 +234,7 @@ export const NeuroConsultChat: React.FC<NeuroConsultChatProps> = ({ activeScanCo
           {/* Clear history button */}
           <button
             onClick={handleClearHistory}
-            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 rounded-lg transition-colors"
+            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-[#111114] transition-colors"
             title="Clear Chat Thread"
           >
             <Trash2 className="h-4 w-4" />
@@ -247,24 +244,24 @@ export const NeuroConsultChat: React.FC<NeuroConsultChatProps> = ({ activeScanCo
 
       {/* Patient Scan Context Indicator */}
       {activeScanContext && (
-        <div className="px-5 py-2 bg-cyan-950/30 border-b border-cyan-900/30 flex items-center justify-between text-xs text-slate-300">
+        <div className="px-5 py-2 bg-[#00ffa3]/5 border-b border-[#00ffa3]/20 flex items-center justify-between text-xs text-[#f0f0f2]/80 font-mono">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="text-slate-400 font-mono">Active PACS Scan:</span>
-            <span className="font-semibold text-cyan-300 capitalize">{activeScanContext.prediction}</span>
-            <span className="text-slate-500">|</span>
-            <span className="font-mono text-slate-400">{activeScanContext.confidence}% confidence</span>
-            <span className="text-slate-500">|</span>
-            <span className="text-slate-400">{activeScanContext.sequence}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00ffa3] animate-pulse" />
+            <span className="text-[#f0f0f2]/40">ACTIVE SCAN:</span>
+            <span className="font-semibold text-[#00ffa3] uppercase">{activeScanContext.prediction}</span>
+            <span className="text-white/20">|</span>
+            <span>{activeScanContext.confidence}% CONFIDENCE</span>
+            <span className="text-white/20">|</span>
+            <span className="text-[#f0f0f2]/60">{activeScanContext.sequence}</span>
           </div>
-          <label className="flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-slate-200">
+          <label className="flex items-center gap-1.5 cursor-pointer text-[#f0f0f2]/60 hover:text-[#f0f0f2]">
             <input
               type="checkbox"
               checked={attachContext}
               onChange={(e) => setAttachContext(e.target.checked)}
-              className="rounded bg-slate-800 border-slate-700 text-cyan-500 focus:ring-cyan-500"
+              className="accent-[#00ffa3]"
             />
-            <span className="text-[11px]">Include Scan Context</span>
+            <span className="text-[10px] tracking-wider uppercase">Include Context</span>
           </label>
         </div>
       )}
@@ -280,38 +277,37 @@ export const NeuroConsultChat: React.FC<NeuroConsultChatProps> = ({ activeScanCo
             >
               {/* Avatar */}
               <div
-                className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 text-white ${
+                className={`h-7 w-7 flex items-center justify-center shrink-0 text-xs font-mono font-bold ${
                   isUser
-                    ? 'bg-blue-600 shadow-md shadow-blue-500/20'
-                    : 'bg-gradient-to-tr from-cyan-600 to-indigo-600 shadow-md shadow-cyan-500/20'
+                    ? 'bg-[#111114] text-[#00ffa3] border border-[#00ffa3]/40'
+                    : 'bg-[#00ffa3] text-[#080809]'
                 }`}
               >
-                {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                {isUser ? <User className="h-3.5 w-3.5" /> : <Bot className="h-3.5 w-3.5" />}
               </div>
 
               {/* Message Content Bubble */}
               <div
-                className={`group relative max-w-[82%] sm:max-w-[75%] rounded-2xl px-4 py-3 text-sm shadow-lg leading-relaxed ${
+                className={`group relative max-w-[82%] sm:max-w-[75%] px-4 py-3 text-xs sm:text-sm leading-relaxed border ${
                   isUser
-                    ? 'bg-blue-600 text-white rounded-tr-sm'
-                    : 'bg-slate-800/80 text-slate-200 border border-slate-700/60 rounded-tl-sm backdrop-blur-md'
+                    ? 'bg-[#111114] text-[#f0f0f2] border-[#00ffa3]/30'
+                    : 'bg-[#111114]/90 text-[#f0f0f2]/90 border-[rgba(240,240,242,0.08)]'
                 }`}
               >
-                {/* Text formatting (bold headers, bullet points) */}
-                <div className="whitespace-pre-wrap font-sans text-xs sm:text-sm">
+                <div className="whitespace-pre-wrap font-sans">
                   {message.content}
                 </div>
 
                 {/* Bubble Footer */}
                 <div
-                  className={`mt-2 flex items-center gap-2 text-[10px] ${
-                    isUser ? 'text-blue-200 justify-end' : 'text-slate-400 justify-between'
+                  className={`mt-2 flex items-center gap-2 font-mono text-[9px] ${
+                    isUser ? 'text-[#00ffa3]/70 justify-end' : 'text-[#f0f0f2]/40 justify-between'
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <span>{message.timestamp}</span>
                     {message.modelUsed && !isUser && (
-                      <span className="font-mono px-1.5 py-0.5 rounded bg-slate-900/80 text-cyan-300 border border-slate-700/50">
+                      <span className="px-1.5 py-0.2 bg-[#080809] text-[#00ffa3] border border-[#00ffa3]/20">
                         {message.modelUsed}
                       </span>
                     )}
@@ -320,11 +316,11 @@ export const NeuroConsultChat: React.FC<NeuroConsultChatProps> = ({ activeScanCo
                   {!isUser && (
                     <button
                       onClick={() => handleCopyText(message.content, message.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-400 hover:text-slate-200 rounded"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-slate-400 hover:text-white"
                       title="Copy response"
                     >
                       {copiedId === message.id ? (
-                        <Check className="h-3 w-3 text-emerald-400" />
+                        <Check className="h-3 w-3 text-[#00ffa3]" />
                       ) : (
                         <Copy className="h-3 w-3" />
                       )}
@@ -339,12 +335,12 @@ export const NeuroConsultChat: React.FC<NeuroConsultChatProps> = ({ activeScanCo
         {/* Loading Indicator */}
         {isLoading && (
           <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center shrink-0 text-white animate-pulse">
-              <Bot className="h-4 w-4" />
+            <div className="h-7 w-7 bg-[#00ffa3] text-[#080809] flex items-center justify-center shrink-0">
+              <Bot className="h-3.5 w-3.5" />
             </div>
-            <div className="bg-slate-800/80 border border-slate-700/60 rounded-2xl rounded-tl-sm px-4 py-3 text-slate-300 text-xs flex items-center gap-3">
-              <RefreshCw className="h-4 w-4 animate-spin text-cyan-400" />
-              <span>NeuroConsult is analyzing case data using {selectedModel}...</span>
+            <div className="bg-[#111114] border border-[rgba(240,240,242,0.08)] px-4 py-3 text-[#f0f0f2]/70 text-xs flex items-center gap-3 font-mono">
+              <RefreshCw className="h-3.5 w-3.5 animate-spin text-[#00ffa3]" />
+              <span>CONSULTING {selectedModel.toUpperCase()}...</span>
             </div>
           </div>
         )}
@@ -353,14 +349,14 @@ export const NeuroConsultChat: React.FC<NeuroConsultChatProps> = ({ activeScanCo
       </div>
 
       {/* Suggested Quick Prompt Pills */}
-      <div className="px-5 py-2 bg-slate-950/60 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto text-[11px] no-scrollbar">
-        <span className="text-slate-500 font-mono shrink-0">Quick Prompts:</span>
+      <div className="px-5 py-2 bg-[#080809] border-t border-[rgba(240,240,242,0.08)] flex items-center gap-2 overflow-x-auto text-[11px] font-mono no-scrollbar">
+        <span className="text-[#f0f0f2]/40 uppercase tracking-widest text-[9px] shrink-0">Prompts:</span>
         {samplePrompts.map((prompt, i) => (
           <button
             key={i}
             onClick={() => handleSendMessage(prompt)}
             disabled={isLoading}
-            className="shrink-0 px-3 py-1 rounded-full bg-slate-800/80 hover:bg-cyan-950/60 hover:text-cyan-300 border border-slate-700 hover:border-cyan-800 text-slate-300 transition-all text-left"
+            className="shrink-0 px-3 py-1 bg-[#111114] hover:bg-white/[0.05] hover:text-[#00ffa3] border border-[rgba(240,240,242,0.08)] text-[#f0f0f2]/70 transition-all text-left text-[11px]"
           >
             {prompt}
           </button>
@@ -368,7 +364,7 @@ export const NeuroConsultChat: React.FC<NeuroConsultChatProps> = ({ activeScanCo
       </div>
 
       {/* Input Composer */}
-      <div className="p-4 bg-slate-900/90 border-t border-slate-800">
+      <div className="p-4 bg-[#080809] border-t border-[rgba(240,240,242,0.08)]">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -380,17 +376,17 @@ export const NeuroConsultChat: React.FC<NeuroConsultChatProps> = ({ activeScanCo
             type="text"
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
-            placeholder={`Ask ${selectedRole === 'neuroradiologist' ? 'Neuroradiology' : selectedRole === 'neurosurgeon' ? 'Neurosurgical' : 'Patient Care'} question...`}
+            placeholder={`Ask ${selectedRole === 'neuroradiologist' ? 'Neuroradiology' : selectedRole === 'neurosurgeon' ? 'Neurosurgical' : 'Patient Care'} consultation...`}
             disabled={isLoading}
-            className="flex-1 bg-slate-950/90 border border-slate-800 focus:border-cyan-500 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none transition-colors"
+            className="flex-1 bg-[#111114] border border-[rgba(240,240,242,0.12)] focus:border-[#00ffa3] px-4 py-3 text-xs sm:text-sm text-[#f0f0f2] placeholder-[#f0f0f2]/30 focus:outline-none transition-colors"
           />
           <button
             type="submit"
             disabled={isLoading || !inputMessage.trim()}
-            className="px-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-sm shadow-md shadow-cyan-500/20 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 transition-all"
+            className="btn-cut px-6 py-3 bg-[#00ffa3] hover:bg-white text-[#080809] font-mono font-bold text-xs uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 transition-all cursor-pointer"
           >
-            <Send className="h-4 w-4" />
-            <span className="hidden sm:inline">Send</span>
+            <Send className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Submit</span>
           </button>
         </form>
       </div>
