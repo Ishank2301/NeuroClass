@@ -205,20 +205,20 @@ export const MriViewer: React.FC<MriViewerProps> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-      {/* Top Toolbar */}
-      <div className="p-3 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="font-mono font-medium text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded border border-cyan-800/80">
+    <div className="bg-[#000] overflow-hidden flex flex-col w-full h-full">
+      {/* Top Precision Toolbar */}
+      <div className="p-3 bg-[#080809] border-b border-[rgba(240,240,242,0.08)] flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 font-mono">
+          <span className="font-semibold text-[#00ffa3] bg-[#00ffa3]/10 px-2.5 py-0.5 border border-[#00ffa3]/30 text-[11px]">
             {patientId}
           </span>
-          <span className="text-slate-400 font-mono">
-            {slicePlane.toUpperCase()} | {sequence}
+          <span className="text-[#f0f0f2]/40 text-[11px] uppercase tracking-wider">
+            {slicePlane} • {sequence}
           </span>
           {prediction && (
             <span
-              className="px-2 py-0.5 rounded font-mono font-bold text-[11px]"
-              style={{ backgroundColor: `${prediction.triageColor}20`, color: prediction.triageColor }}
+              className="px-2 py-0.5 font-bold text-[10px] tracking-wider uppercase border border-current"
+              style={{ color: prediction.triageColor, backgroundColor: `${prediction.triageColor}15` }}
             >
               {prediction.triagePriority}
             </span>
@@ -226,98 +226,102 @@ export const MriViewer: React.FC<MriViewerProps> = ({
         </div>
 
         {/* View & Tool Buttons */}
-        <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-lg border border-slate-800">
+        <div className="flex items-center gap-1.5 bg-[#111114] p-1 border border-[rgba(240,240,242,0.08)]">
           <button
             onClick={() => setZoom((z) => Math.min(3.5, z + 0.25))}
-            className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded transition"
+            className="p-1.5 text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05] transition"
             title="Zoom In (+)"
           >
-            <ZoomIn className="h-4 w-4" />
+            <ZoomIn className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => setZoom((z) => Math.max(0.75, z - 0.25))}
-            className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded transition"
+            className="p-1.5 text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05] transition"
             title="Zoom Out (-)"
           >
-            <ZoomOut className="h-4 w-4" />
+            <ZoomOut className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={resetView}
-            className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded transition"
+            className="p-1.5 text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05] transition"
             title="Reset View"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-3.5 w-3.5" />
           </button>
-          <div className="w-px h-4 bg-slate-800 my-auto mx-0.5"></div>
+          <div className="w-px h-3.5 bg-[rgba(240,240,242,0.1)] my-auto mx-0.5"></div>
           <button
             onClick={() => setCaliperActive(!caliperActive)}
-            className={`p-1.5 rounded transition ${
+            className={`p-1.5 transition ${
               caliperActive
-                ? 'bg-cyan-500 text-slate-950 font-bold'
-                : 'text-slate-400 hover:text-cyan-400 hover:bg-slate-800'
+                ? 'bg-[#00ffa3] text-[#080809] font-bold'
+                : 'text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05]'
             }`}
             title="Measurement Caliper (mm)"
           >
-            <Ruler className="h-4 w-4" />
+            <Ruler className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => setShowCrosshairs(!showCrosshairs)}
-            className={`p-1.5 rounded transition ${
+            className={`p-1.5 transition ${
               showCrosshairs
-                ? 'bg-cyan-500/20 text-cyan-300'
-                : 'text-slate-400 hover:text-cyan-400 hover:bg-slate-800'
+                ? 'bg-[#00ffa3]/20 text-[#00ffa3]'
+                : 'text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05]'
             }`}
-            title="Toggle Crosshairs"
+            title="Toggle Reticle Crosshairs"
           >
-            <Crosshair className="h-4 w-4" />
+            <Crosshair className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={() => setShowScanlines(!showScanlines)}
-            className={`p-1.5 rounded transition ${
+            className={`p-1.5 transition ${
               showScanlines
-                ? 'bg-cyan-500/20 text-cyan-300'
-                : 'text-slate-500 hover:text-cyan-400 hover:bg-slate-800'
+                ? 'bg-[#00ffa3]/20 text-[#00ffa3]'
+                : 'text-[#f0f0f2]/30 hover:text-[#00ffa3] hover:bg-white/[0.05]'
             }`}
             title="Toggle CRT Scanline Overlay"
           >
-            <Layers className="h-4 w-4" />
+            <Layers className="h-3.5 w-3.5" />
           </button>
           <button
             onClick={handleExportSnapshot}
-            className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded transition"
+            className="p-1.5 text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05] transition"
             title="Export Image Snapshot"
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Main Interactive Scan Canvas */}
+      {/* Main Interactive Scan Canvas Area (Variation 8) */}
       <div
         ref={containerRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        className={`relative w-full h-[400px] sm:h-[450px] bg-black flex items-center justify-center overflow-hidden select-none ${
+        className={`canvas-area w-full h-[400px] sm:h-[500px] select-none ${
           caliperActive ? 'cursor-crosshair' : isPanning ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >
+        {/* Subtle Static Center Crosshairs */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/[0.04] pointer-events-none" />
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-white/[0.04] pointer-events-none" />
+
         {/* Hidden original canvas */}
         <canvas ref={baseCanvasRef} className="hidden" />
 
         {/* Viewport Container with Zoom & Pan */}
         <div
-          className="relative transition-transform duration-75"
+          className="mri-image-placeholder transition-transform duration-75"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            width: 400,
-            height: 400
+            width: 440,
+            height: 440,
           }}
         >
           {/* Filtered MRI Scan Canvas */}
           <canvas
             ref={filterCanvasRef}
-            className="absolute inset-0 w-full h-full rounded shadow-inner"
+            className="absolute inset-0 w-full h-full border border-white/5"
           />
 
           {/* Grad-CAM Heatmap Layer */}
@@ -329,7 +333,7 @@ export const MriViewer: React.FC<MriViewerProps> = ({
           {/* Pulsing Lesion Glow Halo */}
           {showPulsingHalo && showRoiBox && prediction && prediction.predictedClass !== 'no_tumor' && (
             <div
-              className="absolute rounded-full pointer-events-none animate-pulse bg-red-500/20 filter blur-md"
+              className="absolute pointer-events-none animate-pulse bg-rose-500/25 filter blur-lg"
               style={{
                 left: `${prediction.gradCamRoi.x - 12}px`,
                 top: `${prediction.gradCamRoi.y - 12}px`,
@@ -339,37 +343,40 @@ export const MriViewer: React.FC<MriViewerProps> = ({
             />
           )}
 
-          {/* ROI Bounding Box & Label */}
+          {/* ROI Bounding Box with Precision Reticle Brackets (Variation 8) */}
           {showRoiBox && prediction && prediction.predictedClass !== 'no_tumor' && (
             <div
-              className="absolute border-2 border-red-500/90 rounded pointer-events-none transition-all shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+              className="roi-box pointer-events-none transition-all shadow-[0_0_20px_rgba(255,51,102,0.35)]"
               style={{
                 left: `${prediction.gradCamRoi.x}px`,
                 top: `${prediction.gradCamRoi.y}px`,
                 width: `${prediction.gradCamRoi.width}px`,
-                height: `${prediction.gradCamRoi.height}px`
+                height: `${prediction.gradCamRoi.height}px`,
+                borderColor: '#ff3366',
+                color: '#ff3366',
+                backgroundColor: 'rgba(255, 51, 102, 0.05)'
               }}
             >
-              <div className="absolute -top-6 left-0 bg-red-600 text-white font-mono text-[9px] px-1.5 py-0.5 rounded shadow whitespace-nowrap">
-                ROI: {prediction.gradCamRoi.estimatedDiameterMm} mm (Area ~{prediction.gradCamRoi.estimatedAreaMm2} mm²)
+              <div className="absolute -bottom-6 left-0 font-mono text-[9px] text-[#ff3366] font-semibold whitespace-nowrap tracking-wider">
+                ROI: {prediction.gradCamRoi.estimatedDiameterMm}mm ({prediction.gradCamRoi.estimatedAreaMm2}mm²)
               </div>
             </div>
           )}
 
           {/* Medical Workstation Scanline Effect */}
           {showScanlines && (
-            <div className="absolute inset-0 pointer-events-none z-10 opacity-25 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.6)_50%)] bg-[length:100%_4px]" />
+            <div className="absolute inset-0 pointer-events-none z-10 opacity-20 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.6)_50%)] bg-[length:100%_4px]" />
           )}
 
-          {/* Crosshairs Overlay */}
+          {/* Interactive Dynamic Reticle Crosshairs */}
           {showCrosshairs && (
             <div className="absolute inset-0 pointer-events-none">
               <div
-                className="absolute w-full border-t border-cyan-400/40"
+                className="absolute w-full border-t border-[#00ffa3]/40"
                 style={{ top: `${mousePos.y}px` }}
               />
               <div
-                className="absolute h-full border-l border-cyan-400/40"
+                className="absolute h-full border-l border-[#00ffa3]/40"
                 style={{ left: `${mousePos.x}px` }}
               />
             </div>
@@ -383,16 +390,16 @@ export const MriViewer: React.FC<MriViewerProps> = ({
                 y1={caliperPoints.y1}
                 x2={caliperPoints.x2}
                 y2={caliperPoints.y2}
-                stroke="#06b6d4"
+                stroke="#00ffa3"
                 strokeWidth="2"
                 strokeDasharray="4 2"
               />
-              <circle cx={caliperPoints.x1} cy={caliperPoints.y1} r="4" fill="#06b6d4" />
-              <circle cx={caliperPoints.x2} cy={caliperPoints.y2} r="4" fill="#06b6d4" />
+              <circle cx={caliperPoints.x1} cy={caliperPoints.y1} r="4" fill="#00ffa3" />
+              <circle cx={caliperPoints.x2} cy={caliperPoints.y2} r="4" fill="#00ffa3" />
               <text
                 x={(caliperPoints.x1 + caliperPoints.x2) / 2 + 8}
                 y={(caliperPoints.y1 + caliperPoints.y2) / 2 - 8}
-                fill="#22d3ee"
+                fill="#00ffa3"
                 fontSize="12"
                 fontWeight="bold"
                 fontFamily="monospace"
@@ -405,115 +412,103 @@ export const MriViewer: React.FC<MriViewerProps> = ({
         </div>
 
         {/* HUD Elements */}
-        <div className="absolute bottom-3 left-3 text-[10px] font-mono text-slate-400/80 bg-slate-950/80 backdrop-blur px-2.5 py-1.5 rounded border border-slate-800 pointer-events-none">
+        <div className="absolute bottom-3 left-3 text-[10px] font-mono text-[#f0f0f2]/60 bg-[#080809]/90 px-2.5 py-1.5 border border-[rgba(240,240,242,0.08)] pointer-events-none">
           <div>SCALE: 0.80 mm/voxel</div>
           <div>ZOOM: {(zoom * 100).toFixed(0)}%</div>
-          {caliperDistanceMm && <div className="text-cyan-300 font-bold">CALIPER: {caliperDistanceMm} mm</div>}
+          {caliperDistanceMm && <div className="text-[#00ffa3] font-bold">CALIPER: {caliperDistanceMm} mm</div>}
         </div>
 
-        <div className="absolute top-3 right-3 text-[10px] font-mono text-slate-400/80 bg-slate-950/80 backdrop-blur px-2.5 py-1.5 rounded border border-slate-800 pointer-events-none">
+        <div className="absolute top-3 right-3 text-[10px] font-mono text-[#f0f0f2]/60 bg-[#080809]/90 px-2.5 py-1.5 border border-[rgba(240,240,242,0.08)] pointer-events-none">
           <div>WINDOW: {filter.toUpperCase()}</div>
           <div>CAM: {showGradCam ? `${colormap.toUpperCase()} (${Math.round(camOpacity * 100)}%)` : 'OFF'}</div>
         </div>
       </div>
 
-      {/* Bottom Control Deck */}
-      <div className="p-3 bg-slate-950/90 border-t border-slate-800 space-y-3">
-        {/* Row 1: Grad-CAM Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-300 hover:text-white">
+      {/* Variation 8 Viewer Controls Grid */}
+      <div className="viewer-controls">
+        {/* Overlays checkboxes */}
+        <div>
+          <span className="label text-[9px] mb-2">Overlays</span>
+          <div className="flex items-center gap-4">
+            <label className="font-mono text-xs text-[#f0f0f2]/80 flex items-center gap-2 cursor-pointer select-none hover:text-[#f0f0f2]">
               <input
                 type="checkbox"
                 checked={showGradCam}
                 onChange={(e) => setShowGradCam(e.target.checked)}
-                className="w-4 h-4 rounded text-cyan-500 bg-slate-900 border-slate-700 focus:ring-cyan-500 focus:ring-offset-slate-950"
+                className="accent-[#00ffa3] cursor-pointer"
               />
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
-                Grad-CAM Activation Map
-              </span>
+              <span>HEATMAP</span>
             </label>
 
-            {showGradCam && (
-              <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-300 hover:text-white">
-                <input
-                  type="checkbox"
-                  checked={showRoiBox}
-                  onChange={(e) => setShowRoiBox(e.target.checked)}
-                  className="w-4 h-4 rounded text-cyan-500 bg-slate-900 border-slate-700"
-                />
-                <span className="text-slate-400">ROI Box</span>
-              </label>
-            )}
+            <label className="font-mono text-xs text-[#f0f0f2]/80 flex items-center gap-2 cursor-pointer select-none hover:text-[#f0f0f2]">
+              <input
+                type="checkbox"
+                checked={showRoiBox}
+                onChange={(e) => setShowRoiBox(e.target.checked)}
+                className="accent-[#00ffa3] cursor-pointer"
+              />
+              <span>BBOX</span>
+            </label>
           </div>
-
-          {showGradCam && (
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Colormap Selector */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-slate-400 text-[11px]">Map:</span>
-                {(['jet', 'inferno', 'turbo', 'viridis'] as const).map((mapName) => (
-                  <button
-                    key={mapName}
-                    onClick={() => setColormap(mapName)}
-                    className={`px-2 py-0.5 rounded capitalize text-[11px] font-mono transition ${
-                      colormap === mapName
-                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
-                        : 'bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800'
-                    }`}
-                  >
-                    {mapName}
-                  </button>
-                ))}
-              </div>
-
-              {/* Opacity Slider */}
-              <div className="flex items-center gap-2">
-                <span className="text-slate-400 text-[11px]">Alpha:</span>
-                <input
-                  type="range"
-                  min="0.1"
-                  max="1.0"
-                  step="0.05"
-                  value={camOpacity}
-                  onChange={(e) => setCamOpacity(parseFloat(e.target.value))}
-                  className="w-20 accent-cyan-500 cursor-pointer"
-                />
-                <span className="font-mono text-cyan-400 text-[11px] w-8">
-                  {Math.round(camOpacity * 100)}%
-                </span>
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Row 2: Window / Level Filters */}
-        <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80 overflow-x-auto pb-1 text-xs">
-          <span className="text-slate-400 flex items-center gap-1 whitespace-nowrap text-[11px]">
-            <Sliders className="h-3.5 w-3.5 text-slate-400" />
-            Radiology Preset:
-          </span>
-          {[
-            { id: 'standard', label: 'Brain Standard' },
-            { id: 'contrast', label: 'High Contrast' },
-            { id: 'bone', label: 'Bone / Sellar' },
-            { id: 'sobel', label: 'Sobel Edge' },
-            { id: 'invert', label: 'Inverted (Film)' }
-          ].map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => setFilter(preset.id as any)}
-              className={`px-2.5 py-1 rounded text-[11px] font-medium transition whitespace-nowrap ${
-                filter === preset.id
-                  ? 'bg-slate-700 text-white shadow-sm'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
-              }`}
-            >
-              {preset.label}
-            </button>
-          ))}
+        {/* Transparency slider */}
+        <div>
+          <span className="label text-[9px] mb-2">Transparency ({Math.round(camOpacity * 100)}%)</span>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min="0.1"
+              max="1.0"
+              step="0.05"
+              value={camOpacity}
+              onChange={(e) => setCamOpacity(parseFloat(e.target.value))}
+              disabled={!showGradCam}
+              className="w-full accent-[#00ffa3] cursor-pointer h-1 bg-[rgba(240,240,242,0.1)] rounded"
+            />
+          </div>
         </div>
+
+        {/* Map Type selector */}
+        <div>
+          <span className="label text-[9px] mb-1.5">Map Type</span>
+          <select
+            value={colormap}
+            onChange={(e) => setColormap(e.target.value as any)}
+            className="w-full bg-[#111114] border border-[rgba(240,240,242,0.12)] text-[#f0f0f2] font-mono text-xs px-3 py-1.5 focus:border-[#00ffa3] focus:outline-none cursor-pointer uppercase"
+          >
+            <option value="inferno">INFERNO</option>
+            <option value="jet">JET</option>
+            <option value="turbo">TURBO</option>
+            <option value="viridis">VIRIDIS</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Row 2: Window / Level Filters */}
+      <div className="px-4 py-2.5 bg-[#080809] border-t border-[rgba(240,240,242,0.08)] flex items-center gap-2 overflow-x-auto text-xs font-mono">
+        <span className="text-[#f0f0f2]/40 text-[10px] uppercase tracking-wider whitespace-nowrap">
+          Radiology Window:
+        </span>
+        {[
+          { id: 'standard', label: 'BRAIN STD' },
+          { id: 'contrast', label: 'HI-CONTRAST' },
+          { id: 'bone', label: 'BONE/SELLAR' },
+          { id: 'sobel', label: 'SOBEL EDGE' },
+          { id: 'invert', label: 'FILM INVERT' }
+        ].map((preset) => (
+          <button
+            key={preset.id}
+            onClick={() => setFilter(preset.id as any)}
+            className={`px-2.5 py-1 text-[10px] font-mono tracking-wider uppercase transition whitespace-nowrap border ${
+              filter === preset.id
+                ? 'bg-[#00ffa3]/15 text-[#00ffa3] border-[#00ffa3]/40 font-bold'
+                : 'bg-[#111114] text-[#f0f0f2]/60 hover:text-[#f0f0f2] border-[rgba(240,240,242,0.08)]'
+            }`}
+          >
+            {preset.label}
+          </button>
+        ))}
       </div>
     </div>
   );
