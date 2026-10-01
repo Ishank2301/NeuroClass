@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, GenerateVideosOperation } from '@google/genai';
@@ -28,10 +30,64 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
+// Security: Disable X-Powered-By header to prevent server fingerprinting
+app.disable('x-powered-by');
+
+// Security: Helmet HTTP Headers Hardening
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Vite and external medical assets handled gracefully
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }, // Allows Firebase OAuth popups
+  })
+);
+
+// Security: Global API Rate Limiter (Protects against volumetric DDoS & scraping)
+const apiRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // Max 200 requests per windowMs per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes.' },
+  handler: (req, res, _next, options) => {
+    logSecurityAudit(null, 'RATE_LIMIT_EXCEEDED_API', req.ip, `Path: ${req.path}`);
+    res.status(429).json(options.message);
+  },
+});
+
+// Security: Auth Credential Rate Limiter (Brute-force and credential stuffing shield)
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Max 20 login/signup attempts per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many authentication attempts. Please wait 15 minutes before trying again.' },
+  handler: (req, res, _next, options) => {
+    logSecurityAudit(null, 'RATE_LIMIT_EXCEEDED_AUTH', req.ip, `Path: ${req.path}`);
+    res.status(429).json(options.message);
+  },
+});
+
+// Security: OTP Dispatch Rate Limiter (Anti-SMS Flooding and anti-spam shield)
+const otpRateLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 8, // Max 8 OTP requests per 10 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many OTP requests. Please wait 10 minutes before requesting another code.' },
+  handler: (req, res, _next, options) => {
+    logSecurityAudit(null, 'RATE_LIMIT_EXCEEDED_OTP', req.ip, `Target: ${req.body?.target || 'unknown'}`);
+    res.status(429).json(options.message);
+  },
+});
+
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: '60mb' }));
 app.use(express.urlencoded({ extended: true, limit: '60mb' }));
+
+// Apply general API rate limiting to all /api routes
+app.use('/api/', apiRateLimiter);
 
 // Shared server-side Gemini client
 const apiKey = process.env.GEMINI_API_KEY;
@@ -347,15 +403,18 @@ const COOKIE_OPTIONS = {
   path: '/',
 };
 
+// Sanitization helper to strip script/HTML tags from inputs
+const sanitizeInput = (val?: string) => (typeof val === 'string' ? val.replace(/[<>]/g, '').trim() : '');
+
 // 4.1 SEND OTP (Phone Number or Email)
-app.post('/api/auth/send-otp', async (req, res) => {
+app.post('/api/auth/send-otp', otpRateLimiter, async (req, res) => {
   try {
     const { target, purpose = 'signup' } = req.body;
     if (!target || typeof target !== 'string') {
       return res.status(400).json({ error: 'Valid phone number or email address is required.' });
     }
 
-    const cleanTarget = target.trim();
+    const cleanTarget = sanitizeInput(target);
     const otpRecord = await createOtp(cleanTarget, purpose);
 
     await logSecurityAudit(null, 'OTP_SENT', req.ip, `Target: ${cleanTarget}, Purpose: ${purpose}`);
@@ -374,14 +433,14 @@ app.post('/api/auth/send-otp', async (req, res) => {
 });
 
 // 4.2 VERIFY OTP
-app.post('/api/auth/verify-otp', async (req, res) => {
+app.post('/api/auth/verify-otp', otpRateLimiter, async (req, res) => {
   try {
     const { target, code, purpose = 'signup' } = req.body;
     if (!target || !code) {
       return res.status(400).json({ error: 'Target identifier and 6-digit OTP code are required.' });
     }
 
-    const verification = await verifyOtp(target, code, purpose);
+    const verification = await verifyOtp(sanitizeInput(target), sanitizeInput(code), purpose);
     if (!verification.success) {
       return res.status(400).json({ error: verification.message });
     }
@@ -395,45 +454,50 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 });
 
 // 4.3 USER SIGNUP (Credentials, Phone with OTP, or Email)
-app.post('/api/auth/signup', async (req, res) => {
+app.post('/api/auth/signup', authRateLimiter, async (req, res) => {
   try {
     const { username, email, phoneNumber, password, displayName, role, otpCode } = req.body;
 
-    if (!username || username.trim().length < 3) {
+    const cleanUsername = sanitizeInput(username);
+    const cleanEmail = sanitizeInput(email);
+    const cleanPhone = sanitizeInput(phoneNumber);
+    const cleanDisplayName = sanitizeInput(displayName);
+
+    if (!cleanUsername || cleanUsername.length < 3) {
       return res.status(400).json({ error: 'Account username must be at least 3 characters long.' });
     }
 
     // Require either password or verified phone/email
-    if (!password && !phoneNumber) {
+    if (!password && !cleanPhone) {
       return res.status(400).json({ error: 'Password or Phone Number verification is required.' });
     }
 
     // If phone number is supplied, verify OTP
-    if (phoneNumber) {
+    if (cleanPhone) {
       if (!otpCode) {
         return res.status(400).json({ error: 'OTP code is required to verify your phone number.' });
       }
-      const otpRes = await verifyOtp(phoneNumber, otpCode, 'signup');
+      const otpRes = await verifyOtp(cleanPhone, sanitizeInput(otpCode), 'signup');
       if (!otpRes.success) {
         return res.status(400).json({ error: otpRes.message });
       }
     }
 
     // If email is supplied with an otpCode, verify it
-    if (email && otpCode && !phoneNumber) {
-      const otpRes = await verifyOtp(email, otpCode, 'signup');
+    if (cleanEmail && otpCode && !cleanPhone) {
+      const otpRes = await verifyOtp(cleanEmail, sanitizeInput(otpCode), 'signup');
       if (!otpRes.success) {
         return res.status(400).json({ error: otpRes.message });
       }
     }
 
     const newUser = await createUserWithCredentials({
-      username,
-      email,
-      phoneNumber,
-      password,
-      displayName,
-      role: role || 'clinician',
+      username: cleanUsername,
+      email: cleanEmail || undefined,
+      phoneNumber: cleanPhone || undefined,
+      password: password || undefined,
+      displayName: cleanDisplayName || undefined,
+      role: role ? sanitizeInput(role) : 'clinician',
     });
 
     // Create session and set HTTP-only cookie
@@ -467,7 +531,7 @@ app.post('/api/auth/signup', async (req, res) => {
 });
 
 // 4.4 USER LOGIN (Username OR Email + Password, OR Phone + OTP)
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authRateLimiter, async (req, res) => {
   try {
     const { identifier, password, otpCode } = req.body;
 
@@ -475,21 +539,22 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Account username, Gmail/email, or phone number is required.' });
     }
 
+    const cleanId = sanitizeInput(identifier);
     let user = null;
 
     // Password login across username, email, or phone
     if (password) {
-      user = await verifyUserPassword(identifier, password);
+      user = await verifyUserPassword(cleanId, password);
       if (!user) {
         return res.status(401).json({ error: 'Invalid credentials. Please verify your account name and password.' });
       }
     } else if (otpCode) {
       // OTP-based phone or email login
-      const otpRes = await verifyOtp(identifier, otpCode, 'login');
+      const otpRes = await verifyOtp(cleanId, sanitizeInput(otpCode), 'login');
       if (!otpRes.success) {
         return res.status(401).json({ error: otpRes.message });
       }
-      user = await findUserByIdentifier(identifier);
+      user = await findUserByIdentifier(cleanId);
       if (!user) {
         return res.status(404).json({ error: 'No account registered with this phone or email. Please sign up first.' });
       }
@@ -500,7 +565,7 @@ app.post('/api/auth/login', async (req, res) => {
     const session = await createSession(user.id, req.ip, req.headers['user-agent']);
     res.cookie('nc_session_token', session.token, COOKIE_OPTIONS);
 
-    await logSecurityAudit(user.id, 'USER_LOGIN', req.ip, `Identifier: ${identifier}`);
+    await logSecurityAudit(user.id, 'USER_LOGIN', req.ip, `Identifier: ${cleanId}`);
 
     const preferences = await getUserPreferences(user.id);
 
@@ -527,7 +592,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // 4.5 FIREBASE SYNC LOGIN (Gmail / GitHub OAuth Popup Flow)
-app.post('/api/auth/firebase-login', async (req, res) => {
+app.post('/api/auth/firebase-login', authRateLimiter, async (req, res) => {
   try {
     const { uid, email, displayName, photoURL, provider = 'google' } = req.body;
 
