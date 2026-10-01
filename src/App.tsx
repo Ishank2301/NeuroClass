@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AuthProvider, useAuth, PersistentScan } from './context/AuthContext';
 import { Navbar, NavTabType } from './components/Navbar';
 import { ScanClassifier } from './components/ScanClassifier';
 import { ModelEvaluation } from './components/ModelEvaluation';
@@ -8,13 +9,19 @@ import { DynamicBackground } from './components/DynamicBackground';
 import { NeuroConsultChat } from './components/NeuroConsultChat';
 import { VeoCineLoopStudio } from './components/VeoCineLoopStudio';
 import { MedicalImageStudio } from './components/MedicalImageStudio';
-import { Brain, ShieldCheck, HeartPulse, Database } from 'lucide-react';
+import { AuthModal } from './components/AuthModal';
+import { PolicyModal } from './components/PolicyModal';
+import { CookieBanner } from './components/CookieBanner';
+import { ScanHistoryDrawer } from './components/ScanHistoryDrawer';
+import { ShieldCheck, Lock, Cookie, Database } from 'lucide-react';
 import { SAMPLE_SCANS } from './data/sampleScans';
 
-export const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTabType>('classifier');
   const [selectedModel, setSelectedModel] = useState<string>('ResNet-50');
   const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
+
+  const { setPolicyModalOpen, setPolicyTab, setHistoryDrawerOpen, isAuthenticated } = useAuth();
 
   // Cross-tab context sharing
   const [activeScanImage, setActiveScanImage] = useState<string>(SAMPLE_SCANS[0]?.imageUrl || '');
@@ -53,6 +60,20 @@ export const App: React.FC = () => {
       setActiveScanContext(contextData);
     }
     setActiveTab(tab);
+  };
+
+  const handleLoadScanFromHistory = (scan: PersistentScan) => {
+    if (scan.scanUrl) {
+      setActiveScanImage(scan.scanUrl);
+    }
+    setActiveScanContext({
+      id: scan.patientRef,
+      prediction: scan.predictedClass,
+      confidence: parseFloat(scan.confidence) || 98.4,
+      sequence: scan.slicePlane || 'Axial T1-CE',
+      description: scan.clinicalNotes || `Persisted scan for patient ${scan.patientRef}.`,
+    });
+    setActiveTab('classifier');
   };
 
   return (
@@ -111,12 +132,84 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Variation 8 Monospace Precision Telemetry Footer */}
-      <footer className="h-10 px-4 sm:px-6 lg:px-8 flex flex-wrap justify-between items-center bg-[#000] font-mono text-[10px] text-[#f0f0f2]/40 tracking-wider border-t border-[rgba(240,240,242,0.08)] relative z-10 shrink-0">
-        <div>NEUROCLASS V2.4 // ENGINE_TYPE: CONVOLUTIONAL_NEURAL_NET // BACKBONE: {selectedModel.toUpperCase()}</div>
-        <div className="hidden sm:block">SESSIONS ACTIVE: 01 // GPU_TEMP: 42°C // DICOM_CALIBRATED: 0.80MM</div>
+      {/* Variation 8 Monospace Precision Telemetry Footer with Policy Links */}
+      <footer className="h-auto py-2 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center bg-[#000] font-mono text-[10px] text-[#f0f0f2]/40 tracking-wider border-t border-[rgba(240,240,242,0.08)] relative z-10 shrink-0 gap-2">
+        <div className="flex items-center gap-2">
+          <span>NEUROCLASS V2.4 // ENGINE: CNN // BACKBONE: {selectedModel.toUpperCase()}</span>
+          <span className="hidden md:inline">// CLOUD_SQL: POSTGRESQL</span>
+        </div>
+
+        {/* Policy & Governance Links */}
+        <div className="flex items-center flex-wrap gap-4 text-[#f0f0f2]/60">
+          {isAuthenticated && (
+            <button
+              onClick={() => setHistoryDrawerOpen(true)}
+              className="hover:text-[#00ffa3] transition-colors flex items-center gap-1"
+            >
+              <Database className="w-3 h-3 text-[#00ffa3]" />
+              <span>SQL History</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              setPolicyTab('cookies');
+              setPolicyModalOpen(true);
+            }}
+            className="hover:text-[#00ffa3] transition-colors flex items-center gap-1"
+          >
+            <Cookie className="w-3 h-3" />
+            <span>Cookies</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setPolicyTab('security');
+              setPolicyModalOpen(true);
+            }}
+            className="hover:text-[#00ffa3] transition-colors flex items-center gap-1"
+          >
+            <Lock className="w-3 h-3 text-[#00ffa3]" />
+            <span>Security Architecture</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setPolicyTab('privacy');
+              setPolicyModalOpen(true);
+            }}
+            className="hover:text-[#00ffa3] transition-colors flex items-center gap-1"
+          >
+            <ShieldCheck className="w-3 h-3" />
+            <span>HIPAA & Privacy</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setPolicyTab('terms');
+              setPolicyModalOpen(true);
+            }}
+            className="hover:text-[#00ffa3] transition-colors"
+          >
+            Terms
+          </button>
+        </div>
       </footer>
+
+      {/* Global Modals & Drawers */}
+      <AuthModal />
+      <PolicyModal />
+      <CookieBanner />
+      <ScanHistoryDrawer onLoadScanIntoViewer={handleLoadScanFromHistory} />
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
