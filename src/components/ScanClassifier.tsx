@@ -5,7 +5,9 @@ import {
   MessageSquare,
   Film,
   Palette,
-  Crosshair
+  Crosshair,
+  Database,
+  Check,
 } from 'lucide-react';
 import { SampleMri, ModelPrediction, TumorClass } from '../types';
 import { SAMPLE_SCANS } from '../data/sampleScans';
@@ -13,6 +15,7 @@ import { predictMriScan, TUMOR_CLASSES_METADATA } from '../utils/mriEngine';
 import { MriViewer } from './MriViewer';
 import { ClinicalReportModal } from './ClinicalReportModal';
 import { NavTabType } from './Navbar';
+import { useAuth } from '../context/AuthContext';
 
 interface ScanClassifierProps {
   selectedModel: string;
@@ -121,6 +124,36 @@ export const ScanClassifier: React.FC<ScanClassifierProps> = ({
     setPatientGender(scan.gender);
     setSlicePlane(scan.slicePlane);
     setSequence(scan.sequence);
+  };
+
+  // Save to Cloud SQL state
+  const { saveScanToCloudSql, isAuthenticated, setAuthModalOpen } = useAuth();
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  const handleSaveToDatabase = async () => {
+    if (!prediction) return;
+    if (!isAuthenticated) {
+      setAuthModalOpen(true);
+      return;
+    }
+    setSaveStatus('saving');
+    const res = await saveScanToCloudSql({
+      patientRef: patientId,
+      scanName: currentScan.name,
+      scanUrl: customImageUrl || currentScan.imageUrl,
+      predictedClass: prediction.predictedClass,
+      confidence: `${prediction.confidence}%`,
+      slicePlane,
+      heatmapType: 'Grad-CAM++',
+      clinicalNotes: `Diagnostic CADx verification via ${selectedModel} with estimated diameter ${prediction.gradCamRoi.estimatedDiameterMm}mm.`,
+    });
+    if (res.success) {
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 3500);
+    } else {
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+    }
   };
 
   const currentThemeColor = prediction ? CLASS_COLORS[prediction.predictedClass] : '#00ffa3';
@@ -362,8 +395,41 @@ export const ScanClassifier: React.FC<ScanClassifierProps> = ({
             )}
           </div>
 
-          {/* Primary Action Button (Variation 8 Clipped Corner) */}
-          <div className="mt-6">
+          {/* Action Buttons (Variation 8 Clipped Corner) */}
+          <div className="mt-6 space-y-2">
+            {prediction && (
+              <button
+                onClick={handleSaveToDatabase}
+                disabled={saveStatus === 'saving'}
+                className={`w-full py-2.5 px-4 font-mono text-xs uppercase tracking-wider font-bold flex items-center justify-center gap-2 border transition-all ${
+                  saveStatus === 'saved'
+                    ? 'bg-emerald-950/60 text-[#00ffa3] border-[#00ffa3]'
+                    : saveStatus === 'error'
+                    ? 'bg-rose-950/60 text-rose-300 border-rose-500'
+                    : 'bg-[#121216] hover:bg-[#1a1a22] text-[#00ffa3] border-[rgba(240,240,242,0.15)] hover:border-[#00ffa3]/50'
+                }`}
+              >
+                {saveStatus === 'saving' ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : saveStatus === 'saved' ? (
+                  <Check className="w-3.5 h-3.5 text-[#00ffa3]" />
+                ) : (
+                  <Database className="w-3.5 h-3.5 text-[#00ffa3]" />
+                )}
+                <span>
+                  {saveStatus === 'saving'
+                    ? 'PERSISTING TO CLOUD SQL...'
+                    : saveStatus === 'saved'
+                    ? '✓ PERSISTED IN CLOUD SQL'
+                    : saveStatus === 'error'
+                    ? 'ERROR PERSISTING'
+                    : isAuthenticated
+                    ? 'SAVE PATIENT TO CLOUD SQL'
+                    : 'SIGN IN TO PERSIST TO SQL'}
+                </span>
+              </button>
+            )}
+
             <button
               onClick={() => setIsReportOpen(true)}
               className="btn-primary"
