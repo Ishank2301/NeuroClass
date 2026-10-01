@@ -17,6 +17,8 @@ bun.lock
 .env.test.local
 .env.production.local
 !.env.example
+firebase-applet-config.json
+!firebase-applet-config.example.json
 
 # 📋 Application & Package Manager Logs
 logs/
