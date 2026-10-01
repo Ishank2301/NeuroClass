@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, GithubAuthProvider } from 'firebase/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
+import { firebaseConfig } from './firebase-config.ts';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
