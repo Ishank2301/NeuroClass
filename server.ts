@@ -1,8 +1,26 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, GenerateVideosOperation } from '@google/genai';
+import {
+  createUserWithCredentials,
+  verifyUserPassword,
+  createSession,
+  revokeSession,
+  createOtp,
+  verifyOtp,
+  getOrCreateUserByFirebase,
+  getUserScanHistory,
+  addScanHistory,
+  deleteScanHistory,
+  getUserPreferences,
+  updateUserPreferences,
+  logSecurityAudit,
+  findUserByIdentifier,
+} from './src/db/users.ts';
+import { requireAuth, optionalAuth, AuthRequest } from './src/middleware/auth.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,7 +28,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
+app.use(cookieParser());
 app.use(express.json({ limit: '60mb' }));
 app.use(express.urlencoded({ extended: true, limit: '60mb' }));
 
@@ -316,7 +335,379 @@ app.post('/api/video/download', async (req, res) => {
 });
 
 // ============================================================================
-// 4. FRONTEND MIDDLEWARE & STATIC SERVING
+// 4. AUTHENTICATION & SECURITY APIs (PostgreSQL + Firebase + OTP + Secure Cookies)
+// ============================================================================
+
+// Cookie options for secure HTTP-only session cookies
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  path: '/',
+};
+
+// 4.1 SEND OTP (Phone Number or Email)
+app.post('/api/auth/send-otp', async (req, res) => {
+  try {
+    const { target, purpose = 'signup' } = req.body;
+    if (!target || typeof target !== 'string') {
+      return res.status(400).json({ error: 'Valid phone number or email address is required.' });
+    }
+
+    const cleanTarget = target.trim();
+    const otpRecord = await createOtp(cleanTarget, purpose);
+
+    await logSecurityAudit(null, 'OTP_SENT', req.ip, `Target: ${cleanTarget}, Purpose: ${purpose}`);
+
+    return res.json({
+      success: true,
+      message: `Verification code generated for ${cleanTarget}.`,
+      expiresAt: otpRecord.expiresAt,
+      // For clinical workstation preview, return debugCode so user can test without SMS gateway
+      debugCode: otpRecord.code,
+    });
+  } catch (err: any) {
+    console.error('Error in /api/auth/send-otp:', err);
+    return res.status(500).json({ error: err.message || 'Failed to dispatch verification code.' });
+  }
+});
+
+// 4.2 VERIFY OTP
+app.post('/api/auth/verify-otp', async (req, res) => {
+  try {
+    const { target, code, purpose = 'signup' } = req.body;
+    if (!target || !code) {
+      return res.status(400).json({ error: 'Target identifier and 6-digit OTP code are required.' });
+    }
+
+    const verification = await verifyOtp(target, code, purpose);
+    if (!verification.success) {
+      return res.status(400).json({ error: verification.message });
+    }
+
+    await logSecurityAudit(null, 'OTP_VERIFIED', req.ip, `Target: ${target}`);
+    return res.json({ success: true, message: verification.message });
+  } catch (err: any) {
+    console.error('Error in /api/auth/verify-otp:', err);
+    return res.status(500).json({ error: err.message || 'OTP verification failed.' });
+  }
+});
+
+// 4.3 USER SIGNUP (Credentials, Phone with OTP, or Email)
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const { username, email, phoneNumber, password, displayName, role, otpCode } = req.body;
+
+    if (!username || username.trim().length < 3) {
+      return res.status(400).json({ error: 'Account username must be at least 3 characters long.' });
+    }
+
+    // Require either password or verified phone/email
+    if (!password && !phoneNumber) {
+      return res.status(400).json({ error: 'Password or Phone Number verification is required.' });
+    }
+
+    // If phone number is supplied, verify OTP
+    if (phoneNumber) {
+      if (!otpCode) {
+        return res.status(400).json({ error: 'OTP code is required to verify your phone number.' });
+      }
+      const otpRes = await verifyOtp(phoneNumber, otpCode, 'signup');
+      if (!otpRes.success) {
+        return res.status(400).json({ error: otpRes.message });
+      }
+    }
+
+    // If email is supplied with an otpCode, verify it
+    if (email && otpCode && !phoneNumber) {
+      const otpRes = await verifyOtp(email, otpCode, 'signup');
+      if (!otpRes.success) {
+        return res.status(400).json({ error: otpRes.message });
+      }
+    }
+
+    const newUser = await createUserWithCredentials({
+      username,
+      email,
+      phoneNumber,
+      password,
+      displayName,
+      role: role || 'clinician',
+    });
+
+    // Create session and set HTTP-only cookie
+    const session = await createSession(newUser.id, req.ip, req.headers['user-agent']);
+    res.cookie('nc_session_token', session.token, COOKIE_OPTIONS);
+
+    await logSecurityAudit(newUser.id, 'USER_SIGNUP', req.ip, `Provider: ${newUser.provider}, Role: ${newUser.role}`);
+
+    const preferences = await getUserPreferences(newUser.id);
+
+    return res.status(201).json({
+      success: true,
+      message: 'Account registered and authenticated successfully.',
+      user: {
+        id: newUser.id,
+        uid: newUser.uid,
+        username: newUser.username,
+        email: newUser.email,
+        phoneNumber: newUser.phoneNumber,
+        displayName: newUser.displayName,
+        avatarUrl: newUser.avatarUrl,
+        role: newUser.role,
+        provider: newUser.provider,
+      },
+      preferences,
+    });
+  } catch (err: any) {
+    console.error('Error in /api/auth/signup:', err);
+    return res.status(400).json({ error: err.message || 'Registration failed.' });
+  }
+});
+
+// 4.4 USER LOGIN (Username OR Email + Password, OR Phone + OTP)
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { identifier, password, otpCode } = req.body;
+
+    if (!identifier) {
+      return res.status(400).json({ error: 'Account username, Gmail/email, or phone number is required.' });
+    }
+
+    let user = null;
+
+    // Password login across username, email, or phone
+    if (password) {
+      user = await verifyUserPassword(identifier, password);
+      if (!user) {
+        return res.status(401).json({ error: 'Invalid credentials. Please verify your account name and password.' });
+      }
+    } else if (otpCode) {
+      // OTP-based phone or email login
+      const otpRes = await verifyOtp(identifier, otpCode, 'login');
+      if (!otpRes.success) {
+        return res.status(401).json({ error: otpRes.message });
+      }
+      user = await findUserByIdentifier(identifier);
+      if (!user) {
+        return res.status(404).json({ error: 'No account registered with this phone or email. Please sign up first.' });
+      }
+    } else {
+      return res.status(400).json({ error: 'Password or OTP verification code is required to sign in.' });
+    }
+
+    const session = await createSession(user.id, req.ip, req.headers['user-agent']);
+    res.cookie('nc_session_token', session.token, COOKIE_OPTIONS);
+
+    await logSecurityAudit(user.id, 'USER_LOGIN', req.ip, `Identifier: ${identifier}`);
+
+    const preferences = await getUserPreferences(user.id);
+
+    return res.json({
+      success: true,
+      message: 'Authenticated successfully.',
+      user: {
+        id: user.id,
+        uid: user.uid,
+        username: user.username,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+        provider: user.provider,
+      },
+      preferences,
+    });
+  } catch (err: any) {
+    console.error('Error in /api/auth/login:', err);
+    return res.status(500).json({ error: err.message || 'Authentication failed.' });
+  }
+});
+
+// 4.5 FIREBASE SYNC LOGIN (Gmail / GitHub OAuth Popup Flow)
+app.post('/api/auth/firebase-login', async (req, res) => {
+  try {
+    const { uid, email, displayName, photoURL, provider = 'google' } = req.body;
+
+    if (!uid) {
+      return res.status(400).json({ error: 'Firebase UID is required.' });
+    }
+
+    const user = await getOrCreateUserByFirebase(
+      uid,
+      email || null,
+      displayName || null,
+      photoURL || null,
+      provider
+    );
+
+    const session = await createSession(user.id, req.ip, req.headers['user-agent']);
+    res.cookie('nc_session_token', session.token, COOKIE_OPTIONS);
+
+    await logSecurityAudit(user.id, 'USER_LOGIN_OAUTH', req.ip, `Provider: ${provider}`);
+
+    const preferences = await getUserPreferences(user.id);
+
+    return res.json({
+      success: true,
+      user: {
+        id: user.id,
+        uid: user.uid,
+        username: user.username,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+        provider: user.provider,
+      },
+      preferences,
+    });
+  } catch (err: any) {
+    console.error('Error in /api/auth/firebase-login:', err);
+    return res.status(500).json({ error: err.message || 'Failed to authenticate via OAuth.' });
+  }
+});
+
+// 4.6 GET CURRENT SESSION USER
+app.get('/api/auth/me', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user) {
+      return res.json({ user: null, authenticated: false });
+    }
+
+    const preferences = await getUserPreferences(req.user.id);
+    return res.json({
+      user: req.user,
+      authenticated: true,
+      preferences,
+    });
+  } catch (err: any) {
+    console.error('Error in /api/auth/me:', err);
+    return res.status(500).json({ error: err.message || 'Error checking session.' });
+  }
+});
+
+// 4.7 LOGOUT
+app.post('/api/auth/logout', async (req, res) => {
+  try {
+    const token = req.cookies?.nc_session_token;
+    if (token) {
+      await revokeSession(token);
+    }
+    res.clearCookie('nc_session_token', { path: '/' });
+    return res.json({ success: true, message: 'Logged out successfully.' });
+  } catch (err: any) {
+    console.error('Error in /api/auth/logout:', err);
+    return res.status(500).json({ error: 'Logout failed.' });
+  }
+});
+
+// 4.8 COOKIE & PRIVACY PREFERENCES
+app.get('/api/auth/preferences', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user) {
+      return res.json({
+        preferences: {
+          cookieConsent: 'all',
+          cookieAnalytics: true,
+          cookieMarketing: false,
+          hipaaConsentAccepted: true,
+          theme: 'dark',
+        },
+      });
+    }
+    const preferences = await getUserPreferences(req.user.id);
+    return res.json({ preferences });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Failed to retrieve preferences.' });
+  }
+});
+
+app.put('/api/auth/preferences', optionalAuth, async (req: AuthRequest, res) => {
+  try {
+    const { cookieConsent, cookieAnalytics, cookieMarketing, hipaaConsentAccepted, theme } = req.body;
+    if (req.user) {
+      const updated = await updateUserPreferences(req.user.id, {
+        cookieConsent,
+        cookieAnalytics: Boolean(cookieAnalytics),
+        cookieMarketing: Boolean(cookieMarketing),
+        hipaaConsentAccepted: Boolean(hipaaConsentAccepted),
+        theme,
+      });
+      await logSecurityAudit(req.user.id, 'POLICY_UPDATED', req.ip, `Consent: ${cookieConsent}`);
+      return res.json({ success: true, preferences: updated });
+    }
+    return res.json({ success: true, preferences: req.body });
+  } catch (err: any) {
+    console.error('Error in /api/auth/preferences:', err);
+    return res.status(500).json({ error: 'Failed to update preferences.' });
+  }
+});
+
+// 4.9 PERSISTENT SCAN HISTORY (Cloud SQL)
+app.get('/api/scans', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const history = await getUserScanHistory(userId);
+    return res.json({ history });
+  } catch (err: any) {
+    console.error('Error in /api/scans:', err);
+    return res.status(500).json({ error: err.message || 'Failed to load diagnostic scan history.' });
+  }
+});
+
+app.post('/api/scans', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const { patientRef, scanName, scanUrl, predictedClass, confidence, allScores, slicePlane, heatmapType, clinicalNotes } = req.body;
+
+    if (!patientRef || !predictedClass || !confidence) {
+      return res.status(400).json({ error: 'Patient reference ID, prediction class, and confidence are required.' });
+    }
+
+    const saved = await addScanHistory(userId, {
+      patientRef,
+      scanName: scanName || 'Axial T1w-CE DICOM',
+      scanUrl,
+      predictedClass,
+      confidence,
+      allScores,
+      slicePlane,
+      heatmapType,
+      clinicalNotes,
+    });
+
+    await logSecurityAudit(userId, 'SCAN_SAVED', req.ip, `Patient: ${patientRef}, Class: ${predictedClass}`);
+
+    return res.status(201).json({ success: true, scan: saved });
+  } catch (err: any) {
+    console.error('Error in /api/scans save:', err);
+    return res.status(500).json({ error: err.message || 'Failed to persist scan history in Cloud SQL.' });
+  }
+});
+
+app.delete('/api/scans/:id', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const scanId = parseInt(req.params.id, 10);
+    if (isNaN(scanId)) {
+      return res.status(400).json({ error: 'Invalid scan ID.' });
+    }
+
+    await deleteScanHistory(userId, scanId);
+    await logSecurityAudit(userId, 'SCAN_DELETED', req.ip, `ScanId: ${scanId}`);
+    return res.json({ success: true, message: 'Scan history record removed.' });
+  } catch (err: any) {
+    console.error('Error in /api/scans delete:', err);
+    return res.status(500).json({ error: err.message || 'Failed to remove scan record.' });
+  }
+});
+
+// ============================================================================
+// 5. FRONTEND MIDDLEWARE & STATIC SERVING
 // ============================================================================
 async function startServer() {
   if (process.env.NODE_ENV === 'production') {
