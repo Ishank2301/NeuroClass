@@ -21,7 +21,7 @@ const AppContent: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState<string>('ResNet-50');
   const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
 
-  const { setPolicyModalOpen, setPolicyTab, setHistoryDrawerOpen, isAuthenticated } = useAuth();
+  const { setPolicyModalOpen, setPolicyTab, setHistoryDrawerOpen, isAuthenticated, scanHistory } = useAuth();
 
   // Cross-tab context sharing
   const [activeScanImage, setActiveScanImage] = useState<string>(SAMPLE_SCANS[0]?.imageUrl || '');
@@ -44,7 +44,7 @@ const AppContent: React.FC = () => {
     'Custom CNN',
     'MobileNet-V2',
     'EfficientNet-B0',
-    'Inception-V3'
+    'Inception-V3',
   ];
 
   const handleSelectScanForDiagnosis = (scanId: string) => {
@@ -76,12 +76,14 @@ const AppContent: React.FC = () => {
     setActiveTab('classifier');
   };
 
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200 relative overflow-x-hidden">
-      {/* Dynamic Animated Neural Particle & Laser Sweep Background */}
-      <DynamicBackground showScanlines={true} />
+  const isClassifierMode = activeTab === 'classifier';
 
-      {/* Navigation Header */}
+  return (
+    <div className="h-screen w-screen bg-[#08080a] text-zinc-100 flex flex-col selection:bg-[#00ffa3]/30 selection:text-[#00ffa3] relative overflow-hidden">
+      {/* Calm Institutional Ambient Background */}
+      <DynamicBackground showScanlines={false} />
+
+      {/* Navigation Header (Fixed 56px) */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -90,9 +92,15 @@ const AppContent: React.FC = () => {
         availableModels={availableModels}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
-        {/* MRI Diagnosis Tab */}
+      {/* Main Content Area: Zero-scroll 100vh for PACS, scrollable for labs */}
+      <main
+        className={`flex-1 relative z-10 overflow-hidden ${
+          isClassifierMode
+            ? 'w-full h-[calc(100vh-3.5rem-2rem)] p-2 sm:p-3 flex flex-col'
+            : 'max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 overflow-y-auto'
+        }`}
+      >
+        {/* MRI Diagnosis Workstation (Fixed PACS Canvas) */}
         {activeTab === 'classifier' && (
           <ScanClassifier
             selectedModel={selectedModel}
@@ -132,22 +140,26 @@ const AppContent: React.FC = () => {
         )}
       </main>
 
-      {/* Variation 8 Monospace Precision Telemetry Footer with Policy Links */}
-      <footer className="h-auto py-2 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center bg-[#000] font-mono text-[10px] text-[#f0f0f2]/40 tracking-wider border-t border-[rgba(240,240,242,0.08)] relative z-10 shrink-0 gap-2">
-        <div className="flex items-center gap-2">
-          <span>NEUROCLASS V2.4 // ENGINE: CNN // BACKBONE: {selectedModel.toUpperCase()}</span>
-          <span className="hidden md:inline">// CLOUD_SQL: POSTGRESQL</span>
+      {/* Compact Monospace Telemetry Footer (32px Fixed) */}
+      <footer className="h-8 px-3 sm:px-6 flex items-center justify-between bg-[#050507] font-mono text-[10px] text-zinc-500 tracking-wider border-t border-white/[0.08] relative z-20 shrink-0">
+        <div className="flex items-center gap-3">
+          <span className="text-[#00ffa3] font-semibold">NEUROCLASS PACS V2.5</span>
+          <span className="hidden md:inline text-zinc-600">//</span>
+          <span className="hidden md:inline">BACKBONE: {selectedModel.toUpperCase()}</span>
+          <span className="hidden lg:inline text-zinc-600">//</span>
+          <span className="hidden lg:inline">ENGINE: TENSOR / GRAD-CAM++</span>
         </div>
 
-        {/* Policy & Governance Links */}
-        <div className="flex items-center flex-wrap gap-4 text-[#f0f0f2]/60">
+        {/* Governance & SQL Triggers */}
+        <div className="flex items-center gap-4 text-zinc-400">
           {isAuthenticated && (
             <button
               onClick={() => setHistoryDrawerOpen(true)}
               className="hover:text-[#00ffa3] transition-colors flex items-center gap-1"
             >
               <Database className="w-3 h-3 text-[#00ffa3]" />
-              <span>SQL History</span>
+              <span className="hidden sm:inline">SQL Archive:</span>
+              <span className="text-[#00ffa3] font-bold">{scanHistory.length}</span>
             </button>
           )}
 
@@ -158,19 +170,8 @@ const AppContent: React.FC = () => {
             }}
             className="hover:text-[#00ffa3] transition-colors flex items-center gap-1"
           >
-            <Cookie className="w-3 h-3" />
-            <span>Cookies</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setPolicyTab('security');
-              setPolicyModalOpen(true);
-            }}
-            className="hover:text-[#00ffa3] transition-colors flex items-center gap-1"
-          >
-            <Lock className="w-3 h-3 text-[#00ffa3]" />
-            <span>Security Architecture</span>
+            <Cookie className="w-3 h-3 text-amber-400" />
+            <span className="hidden sm:inline">Cookies</span>
           </button>
 
           <button
@@ -180,23 +181,24 @@ const AppContent: React.FC = () => {
             }}
             className="hover:text-[#00ffa3] transition-colors flex items-center gap-1"
           >
-            <ShieldCheck className="w-3 h-3" />
-            <span>HIPAA & Privacy</span>
+            <Lock className="w-3 h-3 text-blue-400" />
+            <span className="hidden sm:inline">HIPAA Privacy</span>
           </button>
 
           <button
             onClick={() => {
-              setPolicyTab('terms');
+              setPolicyTab('security');
               setPolicyModalOpen(true);
             }}
-            className="hover:text-[#00ffa3] transition-colors"
+            className="hover:text-[#00ffa3] transition-colors flex items-center gap-1"
           >
-            Terms
+            <ShieldCheck className="w-3 h-3 text-[#00ffa3]" />
+            <span className="hidden sm:inline">Security</span>
           </button>
         </div>
       </footer>
 
-      {/* Global Modals & Drawers */}
+      {/* Modals and Persistent Drawers */}
       <AuthModal />
       <PolicyModal />
       <CookieBanner />
