@@ -10,7 +10,12 @@ import {
   Crosshair,
   Layers,
   Sparkles,
-  Download
+  Download,
+  Hand,
+  MousePointer,
+  Check,
+  ChevronDown,
+  Info,
 } from 'lucide-react';
 import { ModelPrediction } from '../types';
 import { renderGradCamOverlay, applyRadiologyFilter } from '../utils/mriEngine';
@@ -23,22 +28,27 @@ interface MriViewerProps {
   slicePlane?: string;
 }
 
+export type ViewerToolMode = 'pan' | 'zoom' | 'caliper' | 'crosshair';
+
 export const MriViewer: React.FC<MriViewerProps> = ({
   imageUrl,
   prediction,
   patientId = 'ANON-MR-2026',
   sequence = 'T1-CE',
-  slicePlane = 'Axial'
+  slicePlane = 'Axial',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const baseCanvasRef = useRef<HTMLCanvasElement>(null);
   const filterCanvasRef = useRef<HTMLCanvasElement>(null);
   const camCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Viewer State
+  // Active Tool Mode
+  const [activeTool, setActiveTool] = useState<ViewerToolMode>('pan');
+
+  // Zoom & Pan State
   const [zoom, setZoom] = useState<number>(1);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Grad-CAM Controls
@@ -47,17 +57,14 @@ export const MriViewer: React.FC<MriViewerProps> = ({
   const [colormap, setColormap] = useState<'jet' | 'inferno' | 'turbo' | 'viridis'>('jet');
   const [showRoiBox, setShowRoiBox] = useState<boolean>(true);
 
-  // Caliper & Measurement Tool
-  const [caliperActive, setCaliperActive] = useState<boolean>(false);
+  // Caliper Tool
   const [caliperPoints, setCaliperPoints] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
   const [isDrawingCaliper, setIsDrawingCaliper] = useState<boolean>(false);
 
-  // Filter & Crosshair
+  // Image Processing Filters
   const [filter, setFilter] = useState<'standard' | 'contrast' | 'bone' | 'sobel' | 'invert'>('standard');
-  const [showCrosshairs, setShowCrosshairs] = useState<boolean>(false);
   const [mousePos, setMousePos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [showScanlines, setShowScanlines] = useState<boolean>(true);
-  const [showPulsingHalo, setShowPulsingHalo] = useState<boolean>(true);
+  const [camMenuOpen, setCamMenuOpen] = useState<boolean>(false);
 
   // Redraw Base Image onto Canvas
   useEffect(() => {
@@ -128,18 +135,61 @@ export const MriViewer: React.FC<MriViewerProps> = ({
     }
   }, [prediction, showGradCam, colormap, camOpacity]);
 
-  // Pan and Caliper Handlers
+  // Keyboard Shortcuts for PACS Diagnostics
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Avoid hotkeys when typing in inputs/textareas
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement)?.tagName)) {
+        return;
+      }
+
+      if (e.key === ' ' || e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setActiveTool('pan');
+      } else if (e.key.toLowerCase() === 'z') {
+        setActiveTool('zoom');
+      } else if (e.key.toLowerCase() === 'c') {
+        setActiveTool('caliper');
+      } else if (e.key.toLowerCase() === 'x') {
+        setActiveTool((prev) => (prev === 'crosshair' ? 'pan' : 'crosshair'));
+      } else if (e.key.toLowerCase() === 'g') {
+        setShowGradCam((prev) => !prev);
+      } else if (e.key.toLowerCase() === 'r') {
+        resetView();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Direct Mouse Wheel Zoom
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const zoomDelta = e.deltaY < 0 ? 0.15 : -0.15;
+    setZoom((z) => Math.max(0.6, Math.min(4.5, parseFloat((z + zoomDelta).toFixed(2)))));
+  };
+
+  // Mouse Down Handlers
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
     const clientX = e.clientX - rect.left;
     const clientY = e.clientY - rect.top;
 
-    if (caliperActive) {
+    if (activeTool === 'caliper') {
       setIsDrawingCaliper(true);
       setCaliperPoints({ x1: clientX, y1: clientY, x2: clientX, y2: clientY });
+    } else if (activeTool === 'zoom') {
+      // Click-to-zoom
+      if (e.shiftKey || e.button === 2) {
+        setZoom((z) => Math.max(0.6, z - 0.3));
+      } else {
+        setZoom((z) => Math.min(4.5, z + 0.3));
+      }
     } else {
-      setIsPanning(true);
+      // Pan mode
+      setIsDragging(true);
       setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
     }
   };
@@ -151,21 +201,21 @@ export const MriViewer: React.FC<MriViewerProps> = ({
     const clientY = e.clientY - rect.top;
     setMousePos({ x: clientX, y: clientY });
 
-    if (caliperActive && isDrawingCaliper && caliperPoints) {
+    if (activeTool === 'caliper' && isDrawingCaliper && caliperPoints) {
       setCaliperPoints({ ...caliperPoints, x2: clientX, y2: clientY });
-    } else if (isPanning) {
+    } else if (isDragging) {
       setPan({
         x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
+        y: e.clientY - dragStart.y,
       });
     }
   };
 
   const handleMouseUp = () => {
-    if (caliperActive) {
+    if (activeTool === 'caliper') {
       setIsDrawingCaliper(false);
     }
-    setIsPanning(false);
+    setIsDragging(false);
   };
 
   const resetView = () => {
@@ -176,7 +226,7 @@ export const MriViewer: React.FC<MriViewerProps> = ({
 
   // Calculate Caliper Distance in mm (calibration 0.8 mm/px)
   const caliperDistanceMm = caliperPoints
-    ? (Math.hypot(caliperPoints.x2 - caliperPoints.x1, caliperPoints.y2 - caliperPoints.y1) / zoom * 0.8).toFixed(1)
+    ? ((Math.hypot(caliperPoints.x2 - caliperPoints.x1, caliperPoints.y2 - caliperPoints.y1) / zoom) * 0.8).toFixed(1)
     : null;
 
   // Snapshot download
@@ -195,8 +245,8 @@ export const MriViewer: React.FC<MriViewerProps> = ({
 
     // Burn overlay text
     ctx.font = '12px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#06b6d4';
-    ctx.fillText(`NEUROCLASS: ${prediction?.label || 'ANALYSIS'} (${(prediction?.confidence ? prediction.confidence * 100 : 0).toFixed(1)}%)`, 16, 380);
+    ctx.fillStyle = '#00ffa3';
+    ctx.fillText(`NEUROCLASS PACS: ${prediction?.label || 'ANALYSIS'} (${prediction?.confidence || 0}%)`, 16, 380);
 
     const link = document.createElement('a');
     link.download = `neuroclass_mri_${patientId}_${Date.now()}.png`;
@@ -205,184 +255,258 @@ export const MriViewer: React.FC<MriViewerProps> = ({
   };
 
   return (
-    <div className="bg-[#000] overflow-hidden flex flex-col w-full h-full">
-      {/* Top Precision Toolbar */}
-      <div className="p-3 bg-[#080809] border-b border-[rgba(240,240,242,0.08)] flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 font-mono">
-          <span className="font-semibold text-[#00ffa3] bg-[#00ffa3]/10 px-2.5 py-0.5 border border-[#00ffa3]/30 text-[11px]">
-            {patientId}
-          </span>
-          <span className="text-[#f0f0f2]/40 text-[11px] uppercase tracking-wider">
-            {slicePlane} • {sequence}
-          </span>
-          {prediction && (
-            <span
-              className="px-2 py-0.5 font-bold text-[10px] tracking-wider uppercase border border-current"
-              style={{ color: prediction.triageColor, backgroundColor: `${prediction.triageColor}15` }}
-            >
-              {prediction.triagePriority}
-            </span>
+    <div className="relative w-full h-full bg-[#050506] flex flex-col items-center justify-center select-none overflow-hidden group">
+      {/* =========================================================================
+          UNIFIED PACS FLOATING HUD TOOLBAR (Top-Center Dock)
+          ========================================================================= */}
+      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 px-3 py-1.5 bg-[#0e0e12]/90 backdrop-blur-md border border-white/[0.12] shadow-2xl font-mono text-xs">
+        {/* Tool Modes */}
+        <div className="flex items-center gap-0.5">
+          <button
+            onClick={() => setActiveTool('pan')}
+            className={`p-1.5 transition-all flex items-center gap-1 ${
+              activeTool === 'pan'
+                ? 'bg-[#00ffa3]/20 text-[#00ffa3] font-semibold border border-[#00ffa3]/40'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]'
+            }`}
+            title="Pan Scan [Space or P]"
+          >
+            <Hand className="w-3.5 h-3.5" />
+            <span className="hidden xl:inline text-[10px]">PAN</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTool('zoom')}
+            className={`p-1.5 transition-all flex items-center gap-1 ${
+              activeTool === 'zoom'
+                ? 'bg-[#00ffa3]/20 text-[#00ffa3] font-semibold border border-[#00ffa3]/40'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]'
+            }`}
+            title="Zoom Tool [Z]"
+          >
+            <ZoomIn className="w-3.5 h-3.5" />
+            <span className="hidden xl:inline text-[10px]">ZOOM</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTool('caliper')}
+            className={`p-1.5 transition-all flex items-center gap-1 ${
+              activeTool === 'caliper'
+                ? 'bg-[#00ffa3]/20 text-[#00ffa3] font-semibold border border-[#00ffa3]/40'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]'
+            }`}
+            title="Caliper Measurement [C]"
+          >
+            <Ruler className="w-3.5 h-3.5" />
+            <span className="hidden xl:inline text-[10px]">CALIPER</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTool((prev) => (prev === 'crosshair' ? 'pan' : 'crosshair'))}
+            className={`p-1.5 transition-all flex items-center gap-1 ${
+              activeTool === 'crosshair'
+                ? 'bg-[#00ffa3]/20 text-[#00ffa3] font-semibold border border-[#00ffa3]/40'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]'
+            }`}
+            title="DICOM Crosshair [X]"
+          >
+            <Crosshair className="w-3.5 h-3.5" />
+            <span className="hidden xl:inline text-[10px]">CROSS</span>
+          </button>
+        </div>
+
+        <div className="h-4 w-px bg-white/[0.12] mx-1" />
+
+        {/* Windowing Preset Selector */}
+        <div className="flex items-center gap-1">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as any)}
+            className="bg-[#141418] text-[#00ffa3] border border-white/[0.1] px-2 py-1 text-[11px] focus:outline-none cursor-pointer uppercase font-mono font-medium"
+            title="Windowing / Edge Presets"
+          >
+            <option value="standard">Standard T1-CE</option>
+            <option value="contrast">High Contrast</option>
+            <option value="bone">Bone / Edge Enhance</option>
+            <option value="sobel">Sobel Boundary</option>
+            <option value="invert">Inverted Radiograph</option>
+          </select>
+        </div>
+
+        <div className="h-4 w-px bg-white/[0.12] mx-1" />
+
+        {/* Grad-CAM Heatmap Dropdown & Toggle */}
+        <div className="relative">
+          <button
+            onClick={() => setCamMenuOpen(!camMenuOpen)}
+            className={`px-2 py-1 text-[11px] flex items-center gap-1.5 border transition-all ${
+              showGradCam
+                ? 'bg-[#9d00ff]/20 text-[#d8b4fe] border-[#9d00ff]/50 font-semibold'
+                : 'bg-zinc-800/40 text-zinc-400 border-white/[0.08]'
+            }`}
+            title="Grad-CAM Neural Attention Map Settings"
+          >
+            <Sparkles className="w-3 h-3 text-[#00ffa3]" />
+            <span>CAM: {showGradCam ? `${Math.round(camOpacity * 100)}%` : 'OFF'}</span>
+            <ChevronDown className="w-3 h-3 text-zinc-400" />
+          </button>
+
+          {camMenuOpen && (
+            <div className="absolute top-full mt-1.5 left-0 w-56 bg-[#111116] border border-white/[0.12] shadow-2xl p-3 z-50 text-xs font-mono animate-in fade-in zoom-in-95">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-wider text-zinc-400">Grad-CAM Overlay</span>
+                <button
+                  onClick={() => setShowGradCam(!showGradCam)}
+                  className={`text-[10px] px-2 py-0.5 border ${
+                    showGradCam
+                      ? 'bg-[#00ffa3]/20 text-[#00ffa3] border-[#00ffa3]/50'
+                      : 'bg-zinc-800 text-zinc-400 border-zinc-700'
+                  }`}
+                >
+                  {showGradCam ? 'ACTIVE' : 'MUTED'}
+                </button>
+              </div>
+
+              {/* Opacity Slider */}
+              <div className="space-y-1 mb-3">
+                <div className="flex justify-between text-[10px] text-zinc-400">
+                  <span>Opacity</span>
+                  <span className="text-[#00ffa3] font-semibold">{Math.round(camOpacity * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.05"
+                  value={camOpacity}
+                  onChange={(e) => setCamOpacity(parseFloat(e.target.value))}
+                  className="w-full accent-[#00ffa3] h-1.5 bg-zinc-800 rounded cursor-pointer"
+                />
+              </div>
+
+              {/* Colormap Selector */}
+              <div className="space-y-1 mb-2">
+                <div className="text-[10px] text-zinc-400 uppercase tracking-wider">Colormap</div>
+                <div className="grid grid-cols-2 gap-1 text-[10px]">
+                  {(['jet', 'inferno', 'turbo', 'viridis'] as const).map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => setColormap(c)}
+                      className={`px-2 py-1 text-center border uppercase transition-colors ${
+                        colormap === c
+                          ? 'bg-[#00ffa3]/15 text-[#00ffa3] border-[#00ffa3]/50 font-bold'
+                          : 'bg-zinc-900 text-zinc-400 border-white/[0.05] hover:text-zinc-200'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[10px] text-zinc-400">
+                <span>ROI Bounding Box</span>
+                <button
+                  onClick={() => setShowRoiBox(!showRoiBox)}
+                  className={`px-1.5 py-0.5 border ${
+                    showRoiBox
+                      ? 'text-[#00ffa3] border-[#00ffa3]/40'
+                      : 'text-zinc-500 border-zinc-700'
+                  }`}
+                >
+                  {showRoiBox ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
-        {/* View & Tool Buttons */}
-        <div className="flex items-center gap-1.5 bg-[#111114] p-1 border border-[rgba(240,240,242,0.08)]">
-          <button
-            onClick={() => setZoom((z) => Math.min(3.5, z + 0.25))}
-            className="p-1.5 text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05] transition"
-            title="Zoom In (+)"
-          >
-            <ZoomIn className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => setZoom((z) => Math.max(0.75, z - 0.25))}
-            className="p-1.5 text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05] transition"
-            title="Zoom Out (-)"
-          >
-            <ZoomOut className="h-3.5 w-3.5" />
-          </button>
+        <div className="h-4 w-px bg-white/[0.12] mx-1" />
+
+        {/* View Controls: Reset & Export */}
+        <div className="flex items-center gap-1">
           <button
             onClick={resetView}
-            className="p-1.5 text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05] transition"
-            title="Reset View"
+            className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05] transition-colors"
+            title="Reset View [R]"
           >
-            <RotateCcw className="h-3.5 w-3.5" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
-          <div className="w-px h-3.5 bg-[rgba(240,240,242,0.1)] my-auto mx-0.5"></div>
-          <button
-            onClick={() => setCaliperActive(!caliperActive)}
-            className={`p-1.5 transition ${
-              caliperActive
-                ? 'bg-[#00ffa3] text-[#080809] font-bold'
-                : 'text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05]'
-            }`}
-            title="Measurement Caliper (mm)"
-          >
-            <Ruler className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => setShowCrosshairs(!showCrosshairs)}
-            className={`p-1.5 transition ${
-              showCrosshairs
-                ? 'bg-[#00ffa3]/20 text-[#00ffa3]'
-                : 'text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05]'
-            }`}
-            title="Toggle Reticle Crosshairs"
-          >
-            <Crosshair className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => setShowScanlines(!showScanlines)}
-            className={`p-1.5 transition ${
-              showScanlines
-                ? 'bg-[#00ffa3]/20 text-[#00ffa3]'
-                : 'text-[#f0f0f2]/30 hover:text-[#00ffa3] hover:bg-white/[0.05]'
-            }`}
-            title="Toggle CRT Scanline Overlay"
-          >
-            <Layers className="h-3.5 w-3.5" />
-          </button>
+
           <button
             onClick={handleExportSnapshot}
-            className="p-1.5 text-[#f0f0f2]/60 hover:text-[#00ffa3] hover:bg-white/[0.05] transition"
-            title="Export Image Snapshot"
+            className="p-1.5 text-[#00ffa3] hover:bg-[#00ffa3]/10 transition-colors"
+            title="Export Diagnostic Snapshot PNG"
           >
-            <Download className="h-3.5 w-3.5" />
+            <Download className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Main Interactive Scan Canvas Area (Variation 8) */}
+      {/* =========================================================================
+          DICOM VIEWPORT CANVAS CONTAINER
+          ========================================================================= */}
       <div
         ref={containerRef}
+        onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        className={`canvas-area w-full h-[400px] sm:h-[500px] select-none ${
-          caliperActive ? 'cursor-crosshair' : isPanning ? 'cursor-grabbing' : 'cursor-grab'
+        onMouseLeave={handleMouseUp}
+        className={`relative w-full h-full flex items-center justify-center overflow-hidden ${
+          activeTool === 'pan'
+            ? isDragging
+              ? 'cursor-grabbing'
+              : 'cursor-grab'
+            : activeTool === 'caliper'
+            ? 'cursor-crosshair'
+            : activeTool === 'zoom'
+            ? 'cursor-zoom-in'
+            : 'cursor-crosshair'
         }`}
       >
-        {/* Subtle Static Center Crosshairs */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/[0.04] pointer-events-none" />
-        <div className="absolute top-1/2 left-0 right-0 h-px bg-white/[0.04] pointer-events-none" />
-
-        {/* Hidden original canvas */}
-        <canvas ref={baseCanvasRef} className="hidden" />
-
-        {/* Viewport Container with Zoom & Pan */}
+        {/* Transform Stage */}
         <div
-          className="mri-image-placeholder transition-transform duration-75"
           style={{
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            width: 440,
-            height: 440,
+            transformOrigin: 'center center',
+            transition: isDragging ? 'none' : 'transform 0.05s ease-out',
           }}
+          className="relative w-[400px] h-[400px] shadow-2xl shrink-0"
         >
-          {/* Filtered MRI Scan Canvas */}
+          {/* Base MRI Image Canvas */}
+          <canvas ref={baseCanvasRef} className="hidden" />
+
+          {/* Filter Processed Canvas */}
           <canvas
             ref={filterCanvasRef}
-            className="absolute inset-0 w-full h-full border border-white/5"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
           />
 
-          {/* Grad-CAM Heatmap Layer */}
+          {/* Grad-CAM Explainability Canvas */}
           <canvas
             ref={camCanvasRef}
-            className="absolute inset-0 w-full h-full pointer-events-none mix-blend-screen"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
           />
 
-          {/* Pulsing Lesion Glow Halo */}
-          {showPulsingHalo && showRoiBox && prediction && prediction.predictedClass !== 'no_tumor' && (
+          {/* Grad-CAM Heatmap Boundary ROI Box */}
+          {prediction && showGradCam && showRoiBox && prediction.predictedClass !== 'no_tumor' && (
             <div
-              className="absolute pointer-events-none animate-pulse bg-rose-500/25 filter blur-lg"
               style={{
-                left: `${prediction.gradCamRoi.x - 12}px`,
-                top: `${prediction.gradCamRoi.y - 12}px`,
-                width: `${prediction.gradCamRoi.width + 24}px`,
-                height: `${prediction.gradCamRoi.height + 24}px`
+                left: `${(prediction.gradCamRoi.x / 400) * 100}%`,
+                top: `${(prediction.gradCamRoi.y / 400) * 100}%`,
+                width: `${(prediction.gradCamRoi.width / 400) * 100}%`,
+                height: `${(prediction.gradCamRoi.height / 400) * 100}%`,
               }}
-            />
-          )}
-
-          {/* ROI Bounding Box with Precision Reticle Brackets (Variation 8) */}
-          {showRoiBox && prediction && prediction.predictedClass !== 'no_tumor' && (
-            <div
-              className="roi-box pointer-events-none transition-all shadow-[0_0_20px_rgba(255,51,102,0.35)]"
-              style={{
-                left: `${prediction.gradCamRoi.x}px`,
-                top: `${prediction.gradCamRoi.y}px`,
-                width: `${prediction.gradCamRoi.width}px`,
-                height: `${prediction.gradCamRoi.height}px`,
-                borderColor: '#ff3366',
-                color: '#ff3366',
-                backgroundColor: 'rgba(255, 51, 102, 0.05)'
-              }}
+              className="absolute border border-dashed border-[#00ffa3] pointer-events-none shadow-[0_0_12px_rgba(0,255,163,0.3)] animate-pulse"
             >
-              <div className="absolute -bottom-6 left-0 font-mono text-[9px] text-[#ff3366] font-semibold whitespace-nowrap tracking-wider">
-                ROI: {prediction.gradCamRoi.estimatedDiameterMm}mm ({prediction.gradCamRoi.estimatedAreaMm2}mm²)
+              <div className="absolute -top-5 left-0 font-mono text-[9px] bg-black/90 text-[#00ffa3] px-1 py-0.5 border border-[#00ffa3]/40 whitespace-nowrap">
+                {prediction.label} ({prediction.gradCamRoi.estimatedDiameterMm}mm)
               </div>
             </div>
           )}
 
-          {/* Medical Workstation Scanline Effect */}
-          {showScanlines && (
-            <div className="absolute inset-0 pointer-events-none z-10 opacity-20 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.6)_50%)] bg-[length:100%_4px]" />
-          )}
-
-          {/* Interactive Dynamic Reticle Crosshairs */}
-          {showCrosshairs && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div
-                className="absolute w-full border-t border-[#00ffa3]/40"
-                style={{ top: `${mousePos.y}px` }}
-              />
-              <div
-                className="absolute h-full border-l border-[#00ffa3]/40"
-                style={{ left: `${mousePos.x}px` }}
-              />
-            </div>
-          )}
-
-          {/* Caliper Line Render */}
+          {/* Caliper On-Screen Measurement Vector */}
           {caliperPoints && (
             <svg className="absolute inset-0 w-full h-full pointer-events-none z-20">
               <line
@@ -391,124 +515,86 @@ export const MriViewer: React.FC<MriViewerProps> = ({
                 x2={caliperPoints.x2}
                 y2={caliperPoints.y2}
                 stroke="#00ffa3"
-                strokeWidth="2"
+                strokeWidth={1.5 / zoom}
                 strokeDasharray="4 2"
               />
-              <circle cx={caliperPoints.x1} cy={caliperPoints.y1} r="4" fill="#00ffa3" />
-              <circle cx={caliperPoints.x2} cy={caliperPoints.y2} r="4" fill="#00ffa3" />
-              <text
-                x={(caliperPoints.x1 + caliperPoints.x2) / 2 + 8}
-                y={(caliperPoints.y1 + caliperPoints.y2) / 2 - 8}
-                fill="#00ffa3"
-                fontSize="12"
-                fontWeight="bold"
-                fontFamily="monospace"
-                className="drop-shadow-md"
-              >
-                {caliperDistanceMm} mm
-              </text>
+              <circle cx={caliperPoints.x1} cy={caliperPoints.y1} r={3 / zoom} fill="#00ffa3" />
+              <circle cx={caliperPoints.x2} cy={caliperPoints.y2} r={3 / zoom} fill="#00ffa3" />
+              {caliperDistanceMm && (
+                <text
+                  x={(caliperPoints.x1 + caliperPoints.x2) / 2 + 8}
+                  y={(caliperPoints.y1 + caliperPoints.y2) / 2 - 8}
+                  fill="#00ffa3"
+                  fontSize={11 / zoom}
+                  fontFamily="'JetBrains Mono', monospace"
+                  fontWeight="bold"
+                >
+                  {caliperDistanceMm} mm
+                </text>
+              )}
             </svg>
           )}
         </div>
 
-        {/* HUD Elements */}
-        <div className="absolute bottom-3 left-3 text-[10px] font-mono text-[#f0f0f2]/60 bg-[#080809]/90 px-2.5 py-1.5 border border-[rgba(240,240,242,0.08)] pointer-events-none">
-          <div>SCALE: 0.80 mm/voxel</div>
-          <div>ZOOM: {(zoom * 100).toFixed(0)}%</div>
-          {caliperDistanceMm && <div className="text-[#00ffa3] font-bold">CALIPER: {caliperDistanceMm} mm</div>}
-        </div>
-
-        <div className="absolute top-3 right-3 text-[10px] font-mono text-[#f0f0f2]/60 bg-[#080809]/90 px-2.5 py-1.5 border border-[rgba(240,240,242,0.08)] pointer-events-none">
-          <div>WINDOW: {filter.toUpperCase()}</div>
-          <div>CAM: {showGradCam ? `${colormap.toUpperCase()} (${Math.round(camOpacity * 100)}%)` : 'OFF'}</div>
-        </div>
-      </div>
-
-      {/* Variation 8 Viewer Controls Grid */}
-      <div className="viewer-controls">
-        {/* Overlays checkboxes */}
-        <div>
-          <span className="label text-[9px] mb-2">Overlays</span>
-          <div className="flex items-center gap-4">
-            <label className="font-mono text-xs text-[#f0f0f2]/80 flex items-center gap-2 cursor-pointer select-none hover:text-[#f0f0f2]">
-              <input
-                type="checkbox"
-                checked={showGradCam}
-                onChange={(e) => setShowGradCam(e.target.checked)}
-                className="accent-[#00ffa3] cursor-pointer"
-              />
-              <span>HEATMAP</span>
-            </label>
-
-            <label className="font-mono text-xs text-[#f0f0f2]/80 flex items-center gap-2 cursor-pointer select-none hover:text-[#f0f0f2]">
-              <input
-                type="checkbox"
-                checked={showRoiBox}
-                onChange={(e) => setShowRoiBox(e.target.checked)}
-                className="accent-[#00ffa3] cursor-pointer"
-              />
-              <span>BBOX</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Transparency slider */}
-        <div>
-          <span className="label text-[9px] mb-2">Transparency ({Math.round(camOpacity * 100)}%)</span>
-          <div className="flex items-center gap-3">
-            <input
-              type="range"
-              min="0.1"
-              max="1.0"
-              step="0.05"
-              value={camOpacity}
-              onChange={(e) => setCamOpacity(parseFloat(e.target.value))}
-              disabled={!showGradCam}
-              className="w-full accent-[#00ffa3] cursor-pointer h-1 bg-[rgba(240,240,242,0.1)] rounded"
+        {/* Crosshair Overlay */}
+        {activeTool === 'crosshair' && (
+          <div className="absolute inset-0 pointer-events-none z-20">
+            <div
+              className="absolute top-0 bottom-0 w-px bg-[#00ffa3]/30"
+              style={{ left: `${mousePos.x}px` }}
             />
+            <div
+              className="absolute left-0 right-0 h-px bg-[#00ffa3]/30"
+              style={{ top: `${mousePos.y}px` }}
+            />
+            <div
+              className="absolute font-mono text-[9px] text-[#00ffa3] bg-black/80 px-1 py-0.5 border border-[#00ffa3]/30"
+              style={{ left: `${mousePos.x + 8}px`, top: `${mousePos.y + 8}px` }}
+            >
+              X:{Math.round(mousePos.x)} Y:{Math.round(mousePos.y)}
+            </div>
           </div>
+        )}
+
+        {/* =========================================================================
+            CLEAN MONOSPACE DICOM CORNER TELEMETRY READOUTS (No Badge Sandwiches)
+            ========================================================================= */}
+        {/* Top-Left: Patient & Sequence Identifier */}
+        <div className="absolute top-3 left-3 z-10 font-mono text-[10px] text-zinc-400 tracking-wider pointer-events-none space-y-0.5">
+          <div className="text-zinc-100 font-bold">{patientId}</div>
+          <div>{sequence} · {slicePlane}</div>
+          <div className="text-zinc-500">TR: 550ms · TE: 14ms · FA: 90°</div>
         </div>
 
-        {/* Map Type selector */}
-        <div>
-          <span className="label text-[9px] mb-1.5">Map Type</span>
-          <select
-            value={colormap}
-            onChange={(e) => setColormap(e.target.value as any)}
-            className="w-full bg-[#111114] border border-[rgba(240,240,242,0.12)] text-[#f0f0f2] font-mono text-xs px-3 py-1.5 focus:border-[#00ffa3] focus:outline-none cursor-pointer uppercase"
-          >
-            <option value="inferno">INFERNO</option>
-            <option value="jet">JET</option>
-            <option value="turbo">TURBO</option>
-            <option value="viridis">VIRIDIS</option>
-          </select>
+        {/* Top-Right: Zoom & Caliper Measurement */}
+        <div className="absolute top-3 right-3 z-10 font-mono text-[10px] text-zinc-400 tracking-wider text-right pointer-events-none space-y-0.5">
+          <div className="text-zinc-200">MAG: {(zoom * 100).toFixed(0)}%</div>
+          {caliperDistanceMm ? (
+            <div className="text-[#00ffa3] font-bold">CALIPER: {caliperDistanceMm} mm</div>
+          ) : (
+            <div className="text-zinc-500">CALIPER: INACTIVE</div>
+          )}
+          <div className="text-zinc-500">HOTKEYS: [Z] [C] [P] [X] [R]</div>
         </div>
-      </div>
 
-      {/* Row 2: Window / Level Filters */}
-      <div className="px-4 py-2.5 bg-[#080809] border-t border-[rgba(240,240,242,0.08)] flex items-center gap-2 overflow-x-auto text-xs font-mono">
-        <span className="text-[#f0f0f2]/40 text-[10px] uppercase tracking-wider whitespace-nowrap">
-          Radiology Window:
-        </span>
-        {[
-          { id: 'standard', label: 'BRAIN STD' },
-          { id: 'contrast', label: 'HI-CONTRAST' },
-          { id: 'bone', label: 'BONE/SELLAR' },
-          { id: 'sobel', label: 'SOBEL EDGE' },
-          { id: 'invert', label: 'FILM INVERT' }
-        ].map((preset) => (
-          <button
-            key={preset.id}
-            onClick={() => setFilter(preset.id as any)}
-            className={`px-2.5 py-1 text-[10px] font-mono tracking-wider uppercase transition whitespace-nowrap border ${
-              filter === preset.id
-                ? 'bg-[#00ffa3]/15 text-[#00ffa3] border-[#00ffa3]/40 font-bold'
-                : 'bg-[#111114] text-[#f0f0f2]/60 hover:text-[#f0f0f2] border-[rgba(240,240,242,0.08)]'
-            }`}
-          >
-            {preset.label}
-          </button>
-        ))}
+        {/* Bottom-Left: DICOM Calibration & FOV */}
+        <div className="absolute bottom-3 left-3 z-10 font-mono text-[10px] text-zinc-400 tracking-wider pointer-events-none space-y-0.5">
+          <div>FOV: 240 x 240 mm</div>
+          <div>RES: 512 x 512 · 0.8 mm/px</div>
+        </div>
+
+        {/* Bottom-Right: Window / Level & Triage Classification */}
+        <div className="absolute bottom-3 right-3 z-10 font-mono text-[10px] text-zinc-400 tracking-wider text-right pointer-events-none space-y-0.5">
+          <div>W/L: 450 / 120</div>
+          {prediction && (
+            <div
+              className="font-bold tracking-widest uppercase"
+              style={{ color: prediction.triageColor }}
+            >
+              TRIAGE: {prediction.triagePriority}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
