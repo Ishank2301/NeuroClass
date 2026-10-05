@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth, PersistentScan } from './context/AuthContext';
 import { Navbar, NavTabType } from './components/Navbar';
+import { PortalHome } from './components/PortalHome';
 import { ScanClassifier } from './components/ScanClassifier';
 import { ModelEvaluation } from './components/ModelEvaluation';
 import { BatchAnalyzer } from './components/BatchAnalyzer';
@@ -17,7 +18,7 @@ import { ShieldCheck, Lock, Cookie, Database } from 'lucide-react';
 import { SAMPLE_SCANS } from './data/sampleScans';
 
 const AppContent: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<NavTabType>('classifier');
+  const [activeTab, setActiveTab] = useState<NavTabType>('home');
   const [selectedModel, setSelectedModel] = useState<string>('ResNet-50');
   const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
 
@@ -49,6 +50,17 @@ const AppContent: React.FC = () => {
 
   const handleSelectScanForDiagnosis = (scanId: string) => {
     setSelectedScanId(scanId);
+    const found = SAMPLE_SCANS.find((s) => s.id === scanId);
+    if (found) {
+      setActiveScanImage(found.imageUrl);
+      setActiveScanContext({
+        id: found.id,
+        prediction: found.groundTruth === 'no_tumor' ? 'No Tumor' : found.groundTruth.toUpperCase(),
+        confidence: 98.4,
+        sequence: found.sequence,
+        description: `Verified clinical case for patient ${found.patientId}. Sequence: ${found.sequence}, slice plane: ${found.slicePlane}.`,
+      });
+    }
     setActiveTab('classifier');
   };
 
@@ -92,14 +104,23 @@ const AppContent: React.FC = () => {
         availableModels={availableModels}
       />
 
-      {/* Main Content Area: Zero-scroll 100vh for PACS, scrollable for labs */}
+      {/* Main Content Area: Zero-scroll 100vh for PACS, scrollable for Portal and Labs */}
       <main
-        className={`flex-1 relative z-10 overflow-hidden ${
+        className={`flex-1 relative z-10 ${
           isClassifierMode
-            ? 'w-full h-[calc(100vh-3.5rem-2rem)] p-2 sm:p-3 flex flex-col'
+            ? 'w-full h-[calc(100vh-3.5rem-2rem)] p-2 sm:p-3 flex flex-col overflow-hidden'
             : 'max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 overflow-y-auto'
         }`}
       >
+        {/* Portal Home: High-level overview and modular section discovery */}
+        {activeTab === 'home' && (
+          <PortalHome
+            onNavigateToTab={handleNavigateToTab}
+            onSelectScan={handleSelectScanForDiagnosis}
+            selectedModel={selectedModel}
+          />
+        )}
+
         {/* MRI Diagnosis Workstation (Fixed PACS Canvas) */}
         {activeTab === 'classifier' && (
           <ScanClassifier
