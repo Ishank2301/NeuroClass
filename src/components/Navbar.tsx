@@ -16,10 +16,12 @@ import {
   ChevronDown,
   Sparkles,
   Sliders,
+  Home,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export type NavTabType =
+  | 'home'
   | 'classifier'
   | 'chat'
   | 'video'
@@ -84,10 +86,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="h-14 px-3 sm:px-6 border-b border-white/[0.08] bg-[#09090b]/95 backdrop-blur-xl sticky top-0 z-50 flex items-center justify-between transition-all shrink-0">
-      {/* Brand Identity */}
+      {/* Brand Identity -> routes to Home/Portal */}
       <div
-        onClick={() => setActiveTab('classifier')}
+        onClick={() => setActiveTab('home')}
         className="flex items-center gap-3 cursor-pointer select-none group"
+        title="Return to NeuroClass Clinical Portal"
       >
         <div className="w-7 h-7 border border-[#00ffa3] bg-[#00ffa3]/5 flex items-center justify-center font-syne font-black text-sm text-[#00ffa3] relative transition-transform group-hover:scale-105">
           <span>N</span>
@@ -105,12 +108,25 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Central Navigation: Clinical Suite + Research Labs Dropdown */}
+      {/* Central Navigation: Overview, Clinical Suite + Research Labs Dropdown */}
       <nav className="flex items-center gap-1 sm:gap-1.5">
-        {/* Primary Operational Tabs */}
+        {/* Portal Home / Overview */}
+        <button
+          onClick={() => setActiveTab('home')}
+          className={`px-2.5 sm:px-3 py-1.5 text-xs font-mono tracking-wider transition-all border flex items-center gap-1.5 ${
+            activeTab === 'home'
+              ? 'bg-[#00ffa3]/10 text-[#00ffa3] border-[#00ffa3]/40 font-semibold'
+              : 'text-zinc-400 hover:text-zinc-200 border-transparent hover:bg-white/[0.04]'
+          }`}
+        >
+          <Home className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">Overview</span>
+        </button>
+
+        {/* Primary Operational Workstation */}
         <button
           onClick={() => setActiveTab('classifier')}
-          className={`px-3 py-1.5 text-xs font-mono tracking-wider transition-all border ${
+          className={`px-2.5 sm:px-3 py-1.5 text-xs font-mono tracking-wider transition-all border ${
             activeTab === 'classifier'
               ? 'bg-[#00ffa3]/10 text-[#00ffa3] border-[#00ffa3]/40 font-semibold'
               : 'text-zinc-400 hover:text-zinc-200 border-transparent hover:bg-white/[0.04]'
@@ -121,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <button
           onClick={() => setActiveTab('chat')}
-          className={`px-3 py-1.5 text-xs font-mono tracking-wider transition-all border ${
+          className={`px-2.5 sm:px-3 py-1.5 text-xs font-mono tracking-wider transition-all border ${
             activeTab === 'chat'
               ? 'bg-[#00ffa3]/10 text-[#00ffa3] border-[#00ffa3]/40 font-semibold'
               : 'text-zinc-400 hover:text-zinc-200 border-transparent hover:bg-white/[0.04]'
@@ -132,7 +148,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <button
           onClick={() => setActiveTab('batch')}
-          className={`px-3 py-1.5 text-xs font-mono tracking-wider transition-all border ${
+          className={`px-2.5 sm:px-3 py-1.5 text-xs font-mono tracking-wider transition-all border ${
             activeTab === 'batch'
               ? 'bg-[#00ffa3]/10 text-[#00ffa3] border-[#00ffa3]/40 font-semibold'
               : 'text-zinc-400 hover:text-zinc-200 border-transparent hover:bg-white/[0.04]'
@@ -145,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="relative" ref={labsRef}>
           <button
             onClick={() => setLabsMenuOpen(!labsMenuOpen)}
-            className={`px-3 py-1.5 text-xs font-mono tracking-wider transition-all flex items-center gap-1.5 border ${
+            className={`px-2.5 sm:px-3 py-1.5 text-xs font-mono tracking-wider transition-all flex items-center gap-1.5 border ${
               isLabTabActive
                 ? 'bg-[#9d00ff]/15 text-[#c084fc] border-[#9d00ff]/40 font-semibold'
                 : 'text-zinc-400 hover:text-zinc-200 border-transparent hover:bg-white/[0.04]'
